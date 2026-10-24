@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:syshack2026/common/widgets/level_display_card.dart';
 import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
 import 'package:syshack2026/common/widgets/passly_header.dart';
 import 'package:syshack2026/common/widgets/recent_encounter_card.dart';
@@ -11,18 +10,13 @@ import 'package:syshack2026/core/constants/passly_tokens.dart';
 import 'package:syshack2026/features/home/domain/home_notifier.dart';
 import 'package:syshack2026/features/home/domain/recent_encounter.dart';
 import 'package:syshack2026/features/home/presentation/widgets/power_mode_toggle.dart';
-import 'package:syshack2026/features/home/presentation/widgets/today_encounter_hero_card.dart';
-import 'package:syshack2026/features/user/domain/level_info.dart';
 import 'package:syshack2026/core/utils/app_time.dart';
 
-/// ホーム画面 (Figma node 1110:2434 準拠)。
+/// ホーム画面。
 ///
-/// 上から順に: PasslyHeader (title + [PowerModeToggle]) / TodayEncounterHeroCard /
-/// LevelDisplayCard / 「最近の出会い」タイトル + RecentEncounterCard 一覧。
-///
-/// 元は右上に自分アバターを配置していたが、いつきさんの要望で撤去し、
-/// 代わりに擬似フォアグラウンド ON/OFF を切り替える [PowerModeToggle] を配置。
-/// マイページへは下部の PasslyBottomNav 「マイページ」タブから遷移する。
+/// 「今日すれ違った人」だけを並べるシンプルな構成。
+/// すれ違い数のレベル表示と最近の出会いカードは作り直しで削除した。
+/// 右上には擬似フォアグラウンド ON/OFF を切り替える [PowerModeToggle] を配置。
 ///
 /// ボトムナビは [MainScreen] 側で `PasslyBottomNav` として全タブ共通で描画する。
 class HomeScreen extends ConsumerWidget {
@@ -40,7 +34,7 @@ class HomeScreen extends ConsumerWidget {
         children: [
           const PasslyHeader(
             title: 'おかえり！',
-            subtitle: '今日の出会いを見てみよう',
+            subtitle: '今日すれ違った人を見てみよう',
             trailing: [PowerModeToggle()],
           ),
           Expanded(
@@ -66,8 +60,7 @@ class HomeScreen extends ConsumerWidget {
     HomeState data, {
     bool isLoading = false,
   }) {
-    final levelInfo = LevelInfo.compute(data.totalEncounters);
-    final avatarUrls = _pickTodayAvatarUrls(data);
+    final todayEncounters = _filterToday(data.recentEncounters);
 
     return RefreshIndicator(
       color: PasslyBrand.primary,
@@ -81,20 +74,8 @@ class HomeScreen extends ConsumerWidget {
           bottom: 120,
         ),
         children: [
-          TodayEncounterHeroCard(
-            todayCount: data.todayEncounters,
-            avatarUrls: avatarUrls,
-          ),
-          const SizedBox(height: PasslySpace.s20),
-          LevelDisplayCard(
-            count: data.totalEncounters,
-            remaining: levelInfo.remaining,
-            currentLevel: levelInfo.level,
-            progress: levelInfo.progress,
-          ),
-          const SizedBox(height: PasslySpace.s20),
           const Text(
-            '最近の出会い',
+            '今日すれ違った人',
             style: TextStyle(
               fontFamily: PasslyFont.family,
               color: AppColors.textPrimary,
@@ -107,7 +88,7 @@ class HomeScreen extends ConsumerWidget {
           if (isLoading)
             const LoadingCardsSkeleton()
           else
-            ..._buildRecentEncounters(context, data.recentEncounters),
+            ..._buildRecentEncounters(context, todayEncounters),
         ],
       ),
     );
@@ -122,7 +103,7 @@ class HomeScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: PasslySpace.s16),
           child: Text(
-            'まだ出会いがありません',
+            '今日はまだ誰ともすれ違っていません',
             style: TextStyle(
               fontFamily: PasslyFont.family,
               color: PasslyText.secondary,
@@ -148,17 +129,15 @@ class HomeScreen extends ConsumerWidget {
     ];
   }
 
-  /// `unconfirmed` / `randomThree` から今日のすれ違いカード用の 3 件を採る。
-  /// サーバー側で `random_three` が空のときは `unconfirmed` にフォールバック。
-  List<String> _pickTodayAvatarUrls(HomeState data) {
-    final source = data.randomThree.isNotEmpty
-        ? data.randomThree
-        : data.unconfirmed;
-    return source
-        .map((e) => e['icon_url']?.toString() ?? '')
-        .where((url) => url.isNotEmpty)
-        .take(3)
-        .toList();
+  /// 日本時間で今日すれ違った人だけに絞る。
+  List<RecentEncounter> _filterToday(List<RecentEncounter> items) {
+    final today = AppTime.nowLocal();
+    return items.where((e) {
+      final local = AppTime.toAppLocal(e.metAt);
+      return local.year == today.year &&
+          local.month == today.month &&
+          local.day == today.day;
+    }).toList();
   }
 
   static String _formatTime(DateTime dt) {
