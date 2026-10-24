@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:syshack2026/common/widgets/passly_icon.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/common/widgets/passly_icon.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// Figma node 1240:1405 「すれ違い日時ピル」。
 ///

@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/home/data/home_repository.dart';
-import 'package:syshack2026/features/encounter/data/encounter_repository.dart';
-import 'package:syshack2026/features/encounter/data/pending_encounter_repository.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_model.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/home/data/home_repository.dart';
+import 'package:passly/features/encounter/data/encounter_repository.dart';
+import 'package:passly/features/encounter/data/pending_encounter_repository.dart';
+import 'package:passly/features/encounter/domain/encounter_model.dart';
 
 /// 未確認すれ違いデータの状態を管理するプロバイダー
 final encounterNotifierProvider =

@@ -7,17 +7,17 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:syshack2026/features/mypage/presentation/avatar_crop_screen.dart';
-import 'package:syshack2026/common/widgets/passly_glass_circle.dart';
-import 'package:syshack2026/common/widgets/passly_icon.dart';
-import 'package:syshack2026/common/widgets/press_feedback.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/mypage/domain/mypage_editing_provider.dart';
-import 'package:syshack2026/features/user/data/tech_tag_catalog.dart';
-import 'package:syshack2026/features/user/data/user_repository.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
+import 'package:passly/features/mypage/presentation/avatar_crop_screen.dart';
+import 'package:passly/common/widgets/passly_glass_circle.dart';
+import 'package:passly/common/widgets/passly_icon.dart';
+import 'package:passly/common/widgets/press_feedback.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/mypage/domain/mypage_editing_provider.dart';
+import 'package:passly/features/user/data/tech_tag_catalog.dart';
+import 'package:passly/features/user/data/user_repository.dart';
+import 'package:passly/features/user/domain/user_model.dart';
 
 /// 自分のプロフィール画面 (Figma node 1300:1805 準拠)。
 ///

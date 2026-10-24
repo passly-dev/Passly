@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:syshack2026/features/ble/ble_notifier.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/ble/ble_notifier.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
 
 enum NetworkConnectivityStatus { unknown, connected, disconnected }
 

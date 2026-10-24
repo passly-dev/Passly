@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/core/network/dio_client.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
+import 'package:passly/core/network/dio_client.dart';
+import 'package:passly/features/user/domain/user_model.dart';
 
 final plazaRepositoryProvider = Provider<PlazaRepository>((ref) {
   return PlazaRepository(ref.read(dioProvider));

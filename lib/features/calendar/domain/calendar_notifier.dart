@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/features/calendar/data/calendar_repository.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/features/calendar/data/calendar_repository.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// カレンダー画面のデータ状態
 class CalendarState {

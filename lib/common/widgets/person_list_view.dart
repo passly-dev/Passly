@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
+import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:syshack2026/common/widgets/passly_header.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
+import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/core/constants/app_colors.dart';
 
 /// 「その日に出会った人一覧」「親しい友達一覧」など、
 /// 同じレイアウトでデータソースだけ違う人物リスト画面のための共通ウィジェット。

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/common/widgets/press_feedback.dart';
+import 'package:passly/common/widgets/press_feedback.dart';
 
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/features/ble/domain/power_mode_notifier.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/ble/domain/power_mode_notifier.dart';
 
 /// ホームヘッダー右上の 2 タブセグメンテッドコントロール。
 ///

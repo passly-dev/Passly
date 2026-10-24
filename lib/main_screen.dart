@@ -8,18 +8,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:syshack2026/common/widgets/passly_bottom_nav.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/network/dio_client.dart';
-import 'package:syshack2026/core/network/network_activity_provider.dart';
-import 'package:syshack2026/features/ble/ble_notifier.dart';
-import 'package:syshack2026/features/settings/domain/settings_notifier.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_notifier.dart';
-import 'package:syshack2026/features/mypage/domain/mypage_editing_provider.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_model.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/features/ble/domain/power_mode_notifier.dart';
+import 'package:passly/common/widgets/passly_bottom_nav.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/network/dio_client.dart';
+import 'package:passly/core/network/network_activity_provider.dart';
+import 'package:passly/features/ble/ble_notifier.dart';
+import 'package:passly/features/settings/domain/settings_notifier.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
+import 'package:passly/features/mypage/domain/mypage_editing_provider.dart';
+import 'package:passly/features/encounter/domain/encounter_model.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/features/ble/domain/power_mode_notifier.dart';
 
 /// メイン画面（4タブのBottomNavigationBar）
 /// ログイン後に表示される画面で、BLEすれ違い機能のライフサイクルを管理する
@@ -35,7 +35,7 @@ class MainScreen extends ConsumerStatefulWidget {
 class _MainScreenState extends ConsumerState<MainScreen>
     with WidgetsBindingObserver {
   static const MethodChannel _batteryChannel = MethodChannel(
-    'syshack/battery_optimization',
+    'passly/battery_optimization',
   );
 
   bool _bleStarted = false;

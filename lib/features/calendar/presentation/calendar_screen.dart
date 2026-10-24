@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/features/calendar/domain/calendar_notifier.dart';
-import 'package:syshack2026/features/calendar/presentation/widgets/encounter_bubble.dart';
-import 'package:syshack2026/features/calendar/presentation/widgets/month_selector.dart';
-import 'package:syshack2026/features/calendar/presentation/widgets/calendar_grid.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/common/widgets/loading_card_skeleton.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/calendar/domain/calendar_notifier.dart';
+import 'package:passly/features/calendar/presentation/widgets/encounter_bubble.dart';
+import 'package:passly/features/calendar/presentation/widgets/month_selector.dart';
+import 'package:passly/features/calendar/presentation/widgets/calendar_grid.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// カレンダー画面本体Widget
 class CalendarScreen extends ConsumerStatefulWidget {

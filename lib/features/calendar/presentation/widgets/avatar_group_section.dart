@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:syshack2026/core/constants/app_colors.dart';
+import 'package:passly/core/constants/app_colors.dart';
 
 /// 「この日に出会った人」「親しい友達」共通のアバター横並びセクション。
 ///

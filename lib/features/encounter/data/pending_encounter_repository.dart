@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:syshack2026/core/network/dio_client.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_model.dart';
+import 'package:passly/core/network/dio_client.dart';
+import 'package:passly/features/encounter/domain/encounter_model.dart';
 
 /// ローカル保存用リポジトリのプロバイダー
 final pendingEncounterRepositoryProvider = Provider<PendingEncounterRepository>(

@@ -1,4 +1,4 @@
-package com.example.syshack2026
+package com.github.aki0615.passly
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -11,17 +11,17 @@ import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.syshack2026.ble.BleAdvertiseManager
-import com.example.syshack2026.ble.BleScanManager
+import com.github.aki0615.passly.ble.BleAdvertiseManager
+import com.github.aki0615.passly.ble.BleScanManager
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-	private val batteryChannelName = "syshack/battery_optimization"
-	private val bleChannelName = "syshack/ble"
-	private val bleEventChannelName = "syshack/ble/scan_results"
+	private val batteryChannelName = "passly/battery_optimization"
+	private val bleChannelName = "passly/ble"
+	private val bleEventChannelName = "passly/ble/scan_results"
 	private val permissionRequestCode = 20260915
 
 	private val bluetoothAdapter: BluetoothAdapter by lazy {

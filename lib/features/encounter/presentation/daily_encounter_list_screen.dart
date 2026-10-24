@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:syshack2026/common/widgets/person_list_view.dart';
-import 'package:syshack2026/features/calendar/domain/calendar_notifier.dart';
+import 'package:passly/common/widgets/person_list_view.dart';
+import 'package:passly/features/calendar/domain/calendar_notifier.dart';
 
 /// 指定日のすれ違い相手一覧画面。
 ///

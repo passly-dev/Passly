@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/core/network/dio_client.dart';
+import 'package:passly/core/network/dio_client.dart';
 
 final encounterRepositoryProvider = Provider<EncounterRepository>((ref) {
   return EncounterRepository(ref.read(dioProvider));

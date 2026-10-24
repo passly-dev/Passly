@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/core/network/network_activity_provider.dart';
-import 'package:syshack2026/core/network/password_change_error.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/core/network/network_activity_provider.dart';
+import 'package:passly/core/network/password_change_error.dart';
 
 /// セキュアストレージのプロバイダー（ユーザーID・認証トークン保存に使用）
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {

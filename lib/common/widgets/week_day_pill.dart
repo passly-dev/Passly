@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:syshack2026/common/widgets/press_feedback.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
+import 'package:passly/common/widgets/press_feedback.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 
 /// Figma node 1185:1000 「日にちごとのコンポーネント」1 日分のピル。
 ///

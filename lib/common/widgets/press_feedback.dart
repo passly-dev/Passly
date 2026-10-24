@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 
 class PressFeedback extends StatefulWidget {
   final Widget child;

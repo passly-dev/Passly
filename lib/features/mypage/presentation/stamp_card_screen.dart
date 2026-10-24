@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
+import 'package:passly/core/constants/app_colors.dart';
 
-import 'package:syshack2026/features/mypage/domain/achievement_model.dart';
-import 'package:syshack2026/features/mypage/domain/achievement_notifier.dart';
+import 'package:passly/features/mypage/domain/achievement_model.dart';
+import 'package:passly/features/mypage/domain/achievement_notifier.dart';
 
 /// スタンプカード（実績確認）画面
 class StampCardScreen extends ConsumerWidget {

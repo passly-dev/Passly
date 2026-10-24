@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
-import 'package:syshack2026/common/widgets/press_feedback.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
+import 'package:passly/common/widgets/press_feedback.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 
 /// Figma node 1300:1627 の「ナビゲーションバー」ComponentSet 4 バリアント
 /// (ホーム / 広場 / カレンダー / マイページ) 準拠のピル型ボトムナビ。

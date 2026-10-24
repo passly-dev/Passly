@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/common/router/app_router.dart';
-import 'package:syshack2026/common/widgets/network_activity_indicator.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/core/network/network_sync_provider.dart';
+import 'package:passly/common/router/app_router.dart';
+import 'package:passly/common/widgets/network_activity_indicator.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/core/network/network_sync_provider.dart';
 
 void main() {
   // Riverpodの状態管理スコープでアプリ全体をラップ

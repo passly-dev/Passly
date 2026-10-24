@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:syshack2026/common/widgets/press_feedback.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
+import 'package:passly/common/widgets/press_feedback.dart';
+import 'package:passly/core/constants/app_colors.dart';
 
 /// カレンダーの各日付セルを描画するWidget
 class CalendarDayCell extends StatelessWidget {

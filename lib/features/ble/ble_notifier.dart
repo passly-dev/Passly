@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_notifier.dart';
-import 'package:syshack2026/features/encounter/data/encounter_repository.dart';
-import 'package:syshack2026/features/ble/ble_service.dart';
-import 'package:syshack2026/features/encounter/data/pending_encounter_repository.dart';
-import 'package:syshack2026/features/notification/notification_service.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
+import 'package:passly/features/encounter/data/encounter_repository.dart';
+import 'package:passly/features/ble/ble_service.dart';
+import 'package:passly/features/encounter/data/pending_encounter_repository.dart';
+import 'package:passly/features/notification/notification_service.dart';
 
 /// BLE状態を管理するプロバイダー
 final bleNotifierProvider = NotifierProvider<BleNotifier, BleState>(

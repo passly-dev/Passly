@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:syshack2026/common/widgets/passly_header.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/features/close_friend/domain/close_friend_list_notifier.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/features/calendar/domain/calendar_notifier.dart';
-import 'package:syshack2026/features/calendar/presentation/widgets/avatar_group_section.dart';
-import 'package:syshack2026/features/calendar/presentation/widgets/day_event_card.dart';
-import 'package:syshack2026/common/widgets/week_day_pill.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/features/calendar/domain/calendar_notifier.dart';
+import 'package:passly/features/calendar/presentation/widgets/avatar_group_section.dart';
+import 'package:passly/features/calendar/presentation/widgets/day_event_card.dart';
+import 'package:passly/common/widgets/week_day_pill.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// 週表示のカレンダー画面（新規デフォルト）。
 ///

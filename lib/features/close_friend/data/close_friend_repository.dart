@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:syshack2026/core/config/feature_flags.dart';
-import 'package:syshack2026/core/network/dio_client.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/features/close_friend/data/close_friend_repository_api.dart';
-import 'package:syshack2026/features/close_friend/data/close_friend_repository_mock.dart';
+import 'package:passly/core/config/feature_flags.dart';
+import 'package:passly/core/network/dio_client.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/features/close_friend/data/close_friend_repository_api.dart';
+import 'package:passly/features/close_friend/data/close_friend_repository_mock.dart';
 
 /// 「親しい友達」機能の抽象インターフェース。
 ///

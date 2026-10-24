@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:syshack2026/core/network/dio_client.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/core/network/dio_client.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
   return CalendarRepository(

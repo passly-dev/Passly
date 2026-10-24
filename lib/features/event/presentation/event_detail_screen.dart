@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
+import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/features/event/data/event_repository.dart';
-import 'package:syshack2026/features/event/domain/event_model.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/event/data/event_repository.dart';
+import 'package:passly/features/event/domain/event_model.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// イベント詳細画面のプロバイダー。
 ///

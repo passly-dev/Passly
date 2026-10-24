@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
+import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:syshack2026/common/widgets/passly_header.dart';
-import 'package:syshack2026/common/widgets/recent_encounter_card.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/features/close_friend/domain/close_friend_list_notifier.dart';
-import 'package:syshack2026/features/user/data/tech_tag_catalog.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/common/widgets/recent_encounter_card.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
+import 'package:passly/features/user/data/tech_tag_catalog.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// 広場ヘッダーの検索アイコンから開く「友達検索」画面。
 ///

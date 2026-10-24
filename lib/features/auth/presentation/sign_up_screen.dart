@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
 
 /// アカウント作成画面Widget
 class SignUpScreen extends ConsumerStatefulWidget {

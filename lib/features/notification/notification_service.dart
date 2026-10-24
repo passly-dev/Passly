@@ -68,7 +68,7 @@ class NotificationService {
 
   NotificationDetails _getDetails() {
     const androidDetails = AndroidNotificationDetails(
-      'syshack_passly_channel', // チャンネルID
+      'passly_channel', // チャンネルID
       'すれ違い通信', // チャンネル名
       channelDescription: 'バックグラウンドでのすれ違い検知や警告を通知します',
       importance: Importance.high,

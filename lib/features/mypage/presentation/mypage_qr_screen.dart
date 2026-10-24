@@ -7,11 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'package:syshack2026/common/widgets/passly_header.dart';
-import 'package:syshack2026/common/widgets/passly_icon.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
+import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/common/widgets/passly_icon.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
 
 /// マイページの「友だち追加 (QR)」ボタンから開く QR 表示画面
 /// (Figma node 1528:4287)。

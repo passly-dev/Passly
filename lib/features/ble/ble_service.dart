@@ -36,9 +36,9 @@ class BleService {
   factory BleService() => _instance;
   BleService._internal();
 
-  static const MethodChannel _channel = MethodChannel('syshack/ble');
+  static const MethodChannel _channel = MethodChannel('passly/ble');
   static const EventChannel _eventChannel = EventChannel(
-    'syshack/ble/scan_results',
+    'passly/ble/scan_results',
   );
 
   final FlutterBlePeripheral _blePeripheral = FlutterBlePeripheral();

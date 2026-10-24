@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:syshack2026/features/user/domain/last_encounter.dart';
-import 'package:syshack2026/features/user/domain/user_role.dart';
+import 'package:passly/features/user/domain/last_encounter.dart';
+import 'package:passly/features/user/domain/user_role.dart';
 
 part 'user_model.freezed.dart';
 

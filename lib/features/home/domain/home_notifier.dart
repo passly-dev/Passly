@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/features/home/data/home_repository.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/home/domain/recent_encounter.dart';
+import 'package:passly/features/home/data/home_repository.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/home/domain/recent_encounter.dart';
 
 /// ホーム画面のデータ状態
 class HomeState {

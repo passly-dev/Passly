@@ -1,4 +1,4 @@
-package com.example.syshack2026.ble
+package com.github.aki0615.passly.ble
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.AdvertiseCallback

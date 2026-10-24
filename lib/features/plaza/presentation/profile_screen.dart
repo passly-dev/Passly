@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:syshack2026/common/widgets/encounter_meta_pill.dart';
-import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/features/close_friend/domain/close_friend_list_notifier.dart';
-import 'package:syshack2026/features/user/data/user_repository.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/common/widgets/encounter_meta_pill.dart';
+import 'package:passly/common/widgets/loading_card_skeleton.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
+import 'package:passly/features/user/data/user_repository.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 final profileProvider = FutureProvider.family<UserModel, String>((ref, userId) {
   return ref.read(userRepositoryProvider).getUser(userId);
@@ -339,7 +339,7 @@ class _EncounterCard extends StatelessWidget {
   String _formatLastEncounter() {
     final last = profile.lastEncounter;
     if (last == null) {
-      return 'SysHack2026 で出会いました';
+      return 'すれ違いました';
     }
     final local = AppTime.toAppLocal(last.metAt);
     final month = local.month;

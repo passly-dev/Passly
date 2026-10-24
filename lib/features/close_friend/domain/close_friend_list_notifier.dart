@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/features/close_friend/data/close_friend_repository.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/features/close_friend/data/close_friend_repository.dart';
 
 /// ログイン中ユーザーの「親しい友達」一覧を管理する Notifier。
 ///

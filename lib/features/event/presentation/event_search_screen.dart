@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/common/widgets/loading_card_skeleton.dart';
+import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:syshack2026/common/widgets/passly_header.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/features/calendar/presentation/widgets/day_event_card.dart';
-import 'package:syshack2026/features/plaza/domain/plaza_notifier.dart';
-import 'package:syshack2026/core/utils/app_time.dart';
+import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/calendar/presentation/widgets/day_event_card.dart';
+import 'package:passly/features/plaza/domain/plaza_notifier.dart';
+import 'package:passly/core/utils/app_time.dart';
 
 /// イベント検索画面。
 ///

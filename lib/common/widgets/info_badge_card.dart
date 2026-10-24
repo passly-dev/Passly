@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:syshack2026/common/widgets/passly_icon.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
+import 'package:passly/common/widgets/passly_icon.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 
 /// Figma node 1155:703 の Component「出会った場所」「共通タグ」で
 /// 定義されている情報カード。

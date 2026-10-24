@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:syshack2026/common/widgets/encounter_loading_skeleton.dart';
-import 'package:syshack2026/common/widgets/info_badge_card.dart';
-import 'package:syshack2026/common/widgets/passly_icon.dart';
-import 'package:syshack2026/core/constants/app_colors.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
-import 'package:syshack2026/features/auth/domain/auth_notifier.dart';
-import 'package:syshack2026/features/ble/ble_notifier.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_model.dart';
-import 'package:syshack2026/features/encounter/domain/encounter_notifier.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
+import 'package:passly/common/widgets/encounter_loading_skeleton.dart';
+import 'package:passly/common/widgets/info_badge_card.dart';
+import 'package:passly/common/widgets/passly_icon.dart';
+import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/ble/ble_notifier.dart';
+import 'package:passly/features/encounter/domain/encounter_model.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
+import 'package:passly/features/user/domain/user_model.dart';
 
 /// すれ違い結果画面。
 ///

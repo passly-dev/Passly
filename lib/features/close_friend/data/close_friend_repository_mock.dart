@@ -1,7 +1,7 @@
-import 'package:syshack2026/features/user/domain/last_encounter.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/features/user/domain/user_role.dart';
-import 'package:syshack2026/features/close_friend/data/close_friend_repository.dart';
+import 'package:passly/features/user/domain/last_encounter.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/features/user/domain/user_role.dart';
+import 'package:passly/features/close_friend/data/close_friend_repository.dart';
 
 /// バックエンド未実装時に UI 開発を進めるためのモック実装。
 ///

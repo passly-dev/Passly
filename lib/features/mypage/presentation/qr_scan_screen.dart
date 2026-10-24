@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'package:syshack2026/common/widgets/passly_glass_circle.dart';
-import 'package:syshack2026/common/widgets/passly_icon.dart';
-import 'package:syshack2026/core/constants/passly_tokens.dart';
+import 'package:passly/common/widgets/passly_glass_circle.dart';
+import 'package:passly/common/widgets/passly_icon.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 
 /// QR コード読み取り画面 (Figma node 1530:5279 のヘッダー準拠 + 全面カメラビュー)。
 ///

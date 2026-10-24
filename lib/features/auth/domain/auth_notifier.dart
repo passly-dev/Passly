@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:syshack2026/features/user/domain/user_model.dart';
-import 'package:syshack2026/features/auth/data/auth_repository.dart';
+import 'package:passly/features/user/domain/user_model.dart';
+import 'package:passly/features/auth/data/auth_repository.dart';
 
 /// 認証状態を管理するプロバイダー
 /// ログイン中のユーザー情報を保持し、null = 未ログインを意味する
