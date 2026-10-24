@@ -45,14 +45,12 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
   flutter_secure_storage: ^10.0.0
-  http: ^1.6.0
   image_picker: ^1.2.1
   url_launcher: ^6.3.1
   flutter_svg: ^2.2.1
   qr_flutter: ^4.1.0
   wakelock_plus: ^1.8.0
   proximity_sensor: ^2.0.0
-  crypto: ^3.0.7
   shared_preferences: ^2.5.5
   share_plus: ^13.3.0
   liquid_glass_renderer: ^0.2.0-dev.4
@@ -93,8 +91,6 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/level_badges/
-    - assets/images/home/
     - assets/images/nav/
     - assets/images/icons/
     - assets/images/backgrounds/
