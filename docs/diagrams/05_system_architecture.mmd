@@ -1,0 +1,22 @@
+flowchart TB
+    subgraph PhoneA["端末A"]
+        AppA["Passly App Flutter"]
+        BLEA["BLE モジュール"]
+    end
+    subgraph PhoneB["端末B"]
+        AppB["Passly App Flutter"]
+        BLEB["BLE モジュール"]
+    end
+    subgraph Cloud["Render"]
+        Backend["Go Backend streetpass-backend.onrender.com"]
+        DB[("PostgreSQL users encounters achievements events")]
+    end
+    AppA <-.->|"HTTPS Dio"| Backend
+    AppB <-.->|"HTTPS Dio"| Backend
+    Backend --- DB
+    BLEA <-.->|"BLE すれ違い エフェメラルトークン"| BLEB
+    AppA -->|"1. token 取得"| Backend
+    AppA -->|"2. アドバタイズ"| BLEA
+    BLEB -->|"3. 検知"| AppB
+    AppB -->|"4. POST /encounters target_token"| Backend
+    Backend -->|"5. token から user_id 解決 すれ違いレコード保存"| DB

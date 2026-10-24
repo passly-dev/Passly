@@ -1,0 +1,10 @@
+{
+  "theme": "default",
+  "themeVariables": {
+    "fontFamily": "Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans CJK JP, sans-serif"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis"
+  }
+}

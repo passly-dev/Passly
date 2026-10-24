@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Passly ランタイムアーキテクチャ",
+    "subtitle": "Flutter クライアント + BLE すれ違い + Go/Render バックエンド",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Aki0615/SysHack2026.git",
+      "revision": "b6217a4d3859b33176b667fc6310658791dd44a3"
+    }
+  },
+  "components": [
+    {
+      "id": "peer-phone",
+      "type": "external",
+      "label": "対向端末",
+      "sublabel": "BLE peer",
+      "pos": [40, 220],
+      "size": [150, 60]
+    },
+    {
+      "id": "ble-service",
+      "type": "frontend",
+      "label": "BLE Service",
+      "sublabel": "scan / advertise",
+      "tag": "flutter_blue_plus",
+      "sources": [
+        { "path": "lib/features/ble/ble_service.dart", "label": "BleService" }
+      ],
+      "pos": [220, 220],
+      "size": [150, 60]
+    },
+    {
+      "id": "state-layer",
+      "type": "frontend",
+      "label": "Riverpod State",
+      "sublabel": "Auth / Encounter",
+      "tag": "flutter_riverpod",
+      "sources": [
+        { "path": "lib/features/auth/domain/auth_notifier.dart", "label": "AuthNotifier" },
+        { "path": "lib/features/encounter/domain/encounter_notifier.dart", "label": "EncounterNotifier" },
+        { "path": "lib/features/ble/ble_notifier.dart", "label": "BleNotifier" }
+      ],
+      "pos": [400, 220],
+      "size": [150, 60]
+    },
+    {
+      "id": "secure-storage",
+      "type": "security",
+      "label": "Secure Storage",
+      "sublabel": "user_id / pending",
+      "tag": "secure_storage",
+      "sources": [
+        { "path": "lib/core/network/dio_client.dart", "line": 6, "label": "secureStorageProvider" },
+        { "path": "lib/features/encounter/data/pending_encounter_repository.dart", "label": "PendingEncounterRepository" }
+      ],
+      "pos": [600, 220],
+      "size": [150, 60]
+    },
+    {
+      "id": "ui-layer",
+      "type": "frontend",
+      "label": "UI + Router",
+      "sublabel": "GoRouter / tabs",
+      "tag": "go_router",
+      "sources": [
+        { "path": "lib/main.dart", "label": "PasslyApp" },
+        { "path": "lib/main_screen.dart", "label": "MainScreen" },
+        { "path": "lib/common/router/app_router.dart", "label": "appRouter" }
+      ],
+      "pos": [400, 80],
+      "size": [150, 60]
+    },
+    {
+      "id": "repositories",
+      "type": "frontend",
+      "label": "Repositories",
+      "sublabel": "domain data layer",
+      "sources": [
+        { "path": "lib/features/auth/data/auth_repository.dart", "label": "AuthRepository" },
+        { "path": "lib/features/encounter/data/encounter_repository.dart", "label": "EncounterRepository" },
+        { "path": "lib/features/user/data/user_repository.dart", "label": "UserRepository" }
+      ],
+      "pos": [400, 380],
+      "size": [150, 60]
+    },
+    {
+      "id": "dio",
+      "type": "frontend",
+      "label": "Dio Client",
+      "sublabel": "baseUrl 固定",
+      "tag": "dio",
+      "sources": [
+        { "path": "lib/core/network/dio_client.dart", "line": 12, "end_line": 36, "label": "dioProvider" }
+      ],
+      "pos": [400, 520],
+      "size": [150, 60]
+    },
+    {
+      "id": "go-backend",
+      "type": "backend",
+      "label": "Go Backend",
+      "sublabel": "on Render",
+      "tag": "streetpass-backend",
+      "pos": [760, 400],
+      "size": [150, 60]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "on Render",
+      "pos": [760, 540],
+      "size": [150, 60]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "ユーザー端末（クライアント信頼境界）",
+      "wraps": [
+        "ble-service",
+        "state-layer",
+        "ui-layer",
+        "secure-storage",
+        "repositories",
+        "dio"
+      ],
+      "pad": 22
+    },
+    {
+      "kind": "security-group",
+      "label": "Render（サーバー信頼境界）",
+      "wraps": ["go-backend", "postgres"],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    {
+      "id": "ui-to-state",
+      "from": "ui-layer",
+      "to": "state-layer",
+      "label": "watch",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "state-to-repos",
+      "from": "state-layer",
+      "to": "repositories",
+      "label": "call",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "repos-to-dio",
+      "from": "repositories",
+      "to": "dio",
+      "label": "HTTP",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "dio-to-backend",
+      "from": "dio",
+      "to": "go-backend",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [[680, 550], [680, 430]]
+    },
+    {
+      "id": "backend-to-db",
+      "from": "go-backend",
+      "to": "postgres",
+      "label": "SQL",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "state-to-ble",
+      "from": "state-layer",
+      "to": "ble-service",
+      "label": "start/stop",
+      "variant": "default",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelDy": 54
+    },
+    {
+      "id": "ble-to-peer",
+      "from": "ble-service",
+      "to": "peer-phone",
+      "label": "BLE すれ違い",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelDy": 54
+    },
+    {
+      "id": "state-to-storage",
+      "from": "state-layer",
+      "to": "secure-storage",
+      "label": "read/write",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelDy": 54
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "信頼境界",
+      "items": [
+        "クライアント: ユーザー端末の Flutter 内は Secure Storage 以外は素のメモリ。",
+        "サーバー: Render 上の Go + PostgreSQL は独立した信頼ゾーン。",
+        "境界横断: BLE 空間の peer 端末と、url_launcher で開く外部 URL は未信頼扱い。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "エフェメラルトークンによるプライバシー",
+      "items": [
+        "BLE で発信するのは実 user_id ではなく SP_{token}（5 分ローテーション）。",
+        "GET /users/:id/ephemeral-token でトークン取得、サーバー側で token → user_id を解決。",
+        "検知確定時のみ POST /encounters に target_token を送出して記録。"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "BLE ライフサイクル & オフライン保持",
+      "items": [
+        "MainScreen が WidgetsBindingObserver で resumed/detached を検知し BLE を開始/停止。",
+        "未確認すれ違いは Secure Storage に JSON 保持、再起動後も突合可能。",
+        "Render 無料枠のスリープ対策として SplashScreen が起動時にウォームアップ通信。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "補助的な経路（エッジ非表示）",
+      "items": [
+        "Android のみ: MainScreen が MethodChannel `syshack/battery_optimization` でネイティブへ問い合わせ。",
+        "プロフィール外部リンクは url_launcher で X / GitHub / connpass を外部ブラウザに委譲。",
+        "flutter_blue_plus（スキャン）と flutter_ble_peripheral（アドバタイズ）は並走で動作。"
+      ]
+    }
+  ]
+}

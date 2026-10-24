@@ -1,0 +1,26 @@
+flowchart TD
+    Start(["BleNotifier.start()"]) --> Token["GET /users/:id/ephemeral-token"]
+    Token --> Adv["アドバタイズ開始 localName=SP_token"]
+    Adv --> Scan["スキャン開始 withServices=streetPassUuid"]
+    Scan --> Loop{"scanResults を購読"}
+    Loop --> Extract["advName から SP_xxx を抽出"]
+    Extract --> Self{"自分自身の token?"}
+    Self -->|"Yes"| Loop
+    Self -->|"No"| Buf{"バッファに既存?"}
+    Buf -->|"新規"| Add["DetectedDevice 追加"]
+    Buf -->|"既存"| Update["detectionTimes に追加"]
+    Add --> Check{"5秒以内に1回以上検知?"}
+    Update --> Check
+    Check -->|"未達"| Loop
+    Check -->|"達成"| Confirm["isConfirmed = true"]
+    Confirm --> Record["POST /encounters my_id + target_token"]
+    Record --> Created{"201 Created?"}
+    Created -->|"No 重複等"| Loop
+    Created -->|"Yes"| Refresh["encounterNotifier.refresh()"]
+    Refresh --> Ach["GET /users/:id/achievements 新規実績検知"]
+    Ach --> Snack{"新規実績あり?"}
+    Snack -->|"Yes"| Toast["SnackBar で実績解除通知"]
+    Snack -->|"No"| Nav["/encounter-result へ自動遷移"]
+    Toast --> Nav
+    Timer["5分タイマー"] -.->|"期限到来"| Refresh2["トークン再取得 アドバタイズ更新"]
+    Refresh2 -.-> Timer

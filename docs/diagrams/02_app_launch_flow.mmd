@@ -1,0 +1,15 @@
+flowchart TD
+    Start(["アプリ起動"]) --> Splash["SplashScreen 表示"]
+    Splash --> CheckSession{"secure_storage に user_id あり?"}
+    CheckSession -->|"なし"| Login["LoginScreen"]
+    CheckSession -->|"あり"| Restore["GET /users/:id でセッション復元"]
+    Restore -->|"成功"| Home["HomeScreen 表示"]
+    Restore -->|"失敗"| Login
+    Login -->|"ログイン成功"| Home
+    Login -->|"アカウント作成へ"| Signup["SignUpScreen"]
+    Signup -->|"POST /signup → /login"| Home
+    Home --> StartBLE["BLE 自動開始 scan + advertise"]
+    StartBLE --> BatteryCheck{"バッテリー最適化除外済み?"}
+    BatteryCheck -->|"未"| Dialog["設定誘導ダイアログ"]
+    BatteryCheck -->|"済"| EndNode(["メイン画面常駐"])
+    Dialog --> EndNode

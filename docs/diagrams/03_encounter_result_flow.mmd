@@ -1,0 +1,16 @@
+flowchart TD
+    Trigger{"遷移トリガー"} --> T1["BLE で新規検知"]
+    Trigger --> T2["アプリ復帰時に未確認データあり"]
+    Trigger --> T3["起動直後に未確認データあり"]
+    T1 --> Screen["EncounterResultScreen"]
+    T2 --> Screen
+    T3 --> Screen
+    Screen --> Show["ループスクロールですれ違った人を表示"]
+    Show --> Tap{"アイコンタップ?"}
+    Tap -->|"タップ"| Detail["中央にフェードイン 名前 一言 日時"]
+    Detail --> Btn{"確認してホームへ?"}
+    Btn -->|"No"| Tap
+    Btn -->|"Yes"| Confirm["PUT /users/:id/encounters/confirm"]
+    Confirm --> Clear["ローカル pending クリア"]
+    Clear --> Reset["BleNotifier.resetEncounterCount"]
+    Reset --> HomeNode(["/home へ遷移"])

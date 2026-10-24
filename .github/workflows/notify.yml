@@ -1,0 +1,42 @@
+name: Notify Discord
+
+on:
+  push:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Discord Notification
+        env:
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ACTOR: ${{ github.actor }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref_name }}
+          MESSAGE: ${{ github.event.head_commit.message }}
+          URL: ${{ github.event.head_commit.url }}
+        run: |
+          payload=$(jq -n \
+            --arg actor "$ACTOR" \
+            --arg repo  "$REPO" \
+            --arg ref   "$REF" \
+            --arg msg   "$MESSAGE" \
+            --arg url   "$URL" \
+            '{
+              embeds: [{
+                title: "\($repo) に新しい push がありました！",
+                url: $url,
+                description: "ユーザー: \($actor)",
+                color: 5814783,
+                fields: [
+                  { name: "ブランチ",           value: $ref, inline: true  },
+                  { name: "コミットメッセージ", value: $msg, inline: false }
+                ]
+              }]
+            }')
+
+          curl -X POST \
+               -H "Content-Type: application/json" \
+               -d "$payload" \
+               "$WEBHOOK_URL"
