@@ -53,7 +53,7 @@ class MyPageQrScreen extends ConsumerWidget {
                 ),
                 Expanded(
                   // Figma のレイアウトでは QR カード上端 = 238 (画面上端から)、
-                  // 下端 = 646、画面高 892 → ヘッダー (110) 直下の残り 782 の
+                  // 下端 = 646、画面高 892 → ヘッダー (Figma では 110) 直下の残り 782 の
                   // 中で content 上 128 : 下 246 の比率。Align の y は
                   // (128 - 246) / (128 + 246) ≈ -0.32 で表現できる。
                   child: Align(

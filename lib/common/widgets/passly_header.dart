@@ -186,8 +186,10 @@ class PasslyHeader extends StatelessWidget {
         bottom: false,
         left: false,
         right: false,
+        // Figma の 110 はステータスバー込みの高さ。SafeArea の内側なので、
+        // ここではステータスバーを除いた中身の高さだけを取る。
         child: Container(
-          height: 110,
+          height: 72,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           alignment: Alignment.center,
           child: Row(
