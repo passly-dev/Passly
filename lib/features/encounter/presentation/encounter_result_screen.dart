@@ -456,7 +456,11 @@ class _InfoCards extends StatelessWidget {
           const SizedBox(height: 12),
         ],
         if (commonTags.isNotEmpty) ...[
-          _CommonTagCard(tags: commonTags),
+          // 人を切り替えたら畳んだ状態に戻すため、相手ごとに作り直す
+          _CommonTagCard(
+            key: ValueKey(encounter.encounteredUser.id),
+            tags: commonTags,
+          ),
           const SizedBox(height: 12),
           InfoBadgeCard(
             icon: Icons.chat_bubble_outline_rounded,
@@ -471,13 +475,29 @@ class _InfoCards extends StatelessWidget {
 
 /// 共通タグのカード。タグが増えても見出しは 1 行のまま，
 /// チップだけカードの中で折り返し，カードの高さが伸びる。
-class _CommonTagCard extends StatelessWidget {
+/// 共通タグのカード（Figma node 1950:1612「B案」）。
+///
+/// タグが多いと下の「話のネタ」がボタンに埋もれるので、最初の
+/// [_maxVisible] 個だけ出し、残りは「+N」にまとめる。「+N」を押すと全部出す。
+class _CommonTagCard extends StatefulWidget {
   final List<String> tags;
 
-  const _CommonTagCard({required this.tags});
+  const _CommonTagCard({super.key, required this.tags});
+
+  @override
+  State<_CommonTagCard> createState() => _CommonTagCardState();
+}
+
+class _CommonTagCardState extends State<_CommonTagCard> {
+  static const int _maxVisible = 3;
+
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
+    final tags = widget.tags;
+    final collapsed = !_expanded && tags.length > _maxVisible;
+    final visible = collapsed ? tags.take(_maxVisible) : tags;
     return Container(
       constraints: const BoxConstraints(minHeight: 72),
       decoration: BoxDecoration(
@@ -504,7 +524,22 @@ class _CommonTagCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                CommonTagWrap(tags: tags),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    for (final t in visible) CommonTagChip.solid(t),
+                    if (collapsed)
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _expanded = true),
+                        child: CommonTagChip.more(
+                          '+${tags.length - _maxVisible}',
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
