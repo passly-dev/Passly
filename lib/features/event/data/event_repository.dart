@@ -17,7 +17,7 @@ abstract class EventRepository {
 }
 
 final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  if (FeatureFlags.useMockEventDetail) {
+  if (FeatureFlags.useMockEventDetail && !FeatureFlags.demoMode) {
     return EventRepositoryMock();
   }
   return EventRepositoryApi(ref.read(dioProvider));

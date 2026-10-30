@@ -8,4 +8,8 @@ abstract final class FeatureFlags {
 
   /// GET /events/:id（イベント詳細と参加者一覧）にモック実装を使う。
   static const bool useMockEventDetail = true;
+
+  /// デモ動画用。`--dart-define=DEMO_MODE=true` で起動したときだけ true。
+  /// サーバーへは通信せず、lib/demo/ のダミーデータで動く（ログインも不要）。
+  static const bool demoMode = bool.fromEnvironment('DEMO_MODE');
 }

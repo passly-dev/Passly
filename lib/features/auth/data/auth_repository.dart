@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/network/dio_client.dart';
+import 'package:passly/demo/demo_people.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 
 /// 認証リポジトリのプロバイダー
@@ -121,6 +123,7 @@ class AuthRepository {
 
   /// 保存済みユーザーIDの有無を確認する
   Future<bool> hasSession() async {
+    if (FeatureFlags.demoMode) return true;
     try {
       final userId = await _storage.read(key: 'user_id');
       return userId != null;
@@ -131,6 +134,7 @@ class AuthRepository {
 
   /// 保存されたユーザーIDを取得する
   Future<String?> getSavedUserId() async {
+    if (FeatureFlags.demoMode) return demoMeId;
     try {
       return await _storage.read(key: 'user_id');
     } catch (_) {

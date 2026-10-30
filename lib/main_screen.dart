@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:flutter/material.dart';
+import 'package:passly/core/config/feature_flags.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -152,6 +153,9 @@ class _MainScreenState extends ConsumerState<MainScreen>
   Future<void> _startBleIfLoggedIn() async {
     final user = ref.read(authNotifierProvider).value;
     if (user == null) return;
+
+    // デモモードでは BLE を使わない（すれ違いはホームの長押しで出す）
+    if (FeatureFlags.demoMode) return;
 
     // 設定でOFFになっている場合は自動開始しない
     final isBleEnabled =

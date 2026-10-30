@@ -68,6 +68,19 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
+### デモモード（デモ動画の撮影用）
+
+```bash
+flutter run --dart-define=DEMO_MODE=true
+```
+
+VS Code では実行構成「Passly (デモ)」でも起動できます。
+
+- サーバーには通信せず、`lib/demo/` のダミーデータで動きます。ログインも不要です
+- イベントは connpass で実際に参加したもの、人物はすべて架空です
+- ホームのヘッダー（「おかえり！」）を長押しすると、すれ違い画面が出ます
+- BLE のすれ違いは動きません。お気に入りなどの変更はアプリを再起動すると元に戻ります
+
 ## 対象OS
 
 - Android

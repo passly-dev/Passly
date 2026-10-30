@@ -7,7 +7,10 @@ import 'package:passly/common/widgets/common_tag_person_card.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:passly/common/widgets/passly_header.dart';
 import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/demo/demo_api.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
 import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
 import 'package:passly/features/home/presentation/widgets/power_mode_toggle.dart';
@@ -25,6 +28,14 @@ import 'package:passly/features/user/domain/common_tags.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  /// デモ用。すれ違ったことにして、すれ違い画面を開く。
+  Future<void> _showDemoEncounter(BuildContext context, WidgetRef ref) async {
+    DemoApi.instance.startEncounter();
+    ref.invalidate(encounterNotifierProvider);
+    await ref.read(encounterNotifierProvider.future);
+    if (context.mounted) context.go('/encounter-result');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeNotifierProvider);
@@ -35,10 +46,16 @@ class HomeScreen extends ConsumerWidget {
       // これでヘッダーの白背景がステータスバー / Dynamic Island 領域まで届く。
       body: Column(
         children: [
-          const PasslyHeader(
-            title: 'おかえり！',
-            subtitle: '今日の出会いを見てみよう',
-            trailing: [PowerModeToggle()],
+          GestureDetector(
+            // デモモードのときだけ、ヘッダー長押しですれ違い画面を出す
+            onLongPress: FeatureFlags.demoMode
+                ? () => _showDemoEncounter(context, ref)
+                : null,
+            child: const PasslyHeader(
+              title: 'おかえり！',
+              subtitle: '今日の出会いを見てみよう',
+              trailing: [PowerModeToggle()],
+            ),
           ),
           Expanded(
             child: homeState.when(

@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:passly/core/config/feature_flags.dart';
+import 'package:passly/demo/demo_api.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/core/network/network_activity_provider.dart';
 import 'package:passly/core/network/password_change_error.dart';
@@ -27,6 +29,11 @@ final dioProvider = Provider<Dio>((ref) {
       headers: {'Content-Type': 'application/json'},
     ),
   );
+
+  // デモモードではサーバーに通信せず、ダミーデータで応答する
+  if (FeatureFlags.demoMode) {
+    dio.interceptors.add(DemoApiInterceptor());
+  }
 
   // 認証トークン自動付与 + 401時の自動ログアウト用インターセプター
   dio.interceptors.add(
