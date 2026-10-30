@@ -14,7 +14,7 @@ import 'package:passly/core/utils/app_time.dart';
 
 /// 広場ヘッダーの検索アイコンから開く「友達検索」画面。
 ///
-/// 検索対象は現状 `closeFriendListProvider` の親しい人リスト。
+/// 検索対象は現状 `closeFriendListProvider` のお気に入りリスト。
 /// バックエンドに「ユーザー全文検索」API が無いため、当面はクライアント側で
 /// 名前 (name) と技術タグ (tech_stack) を部分一致で絞り込む。
 ///
@@ -73,7 +73,7 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    '親しい人の取得に失敗しました\n$err',
+                    'お気に入りの取得に失敗しました\n$err',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: PasslyFont.family,
@@ -98,7 +98,7 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
       children: [
         Text(
           _query.isEmpty
-              ? '親しい人 ${users.length} 人'
+              ? 'お気に入り ${users.length} 人'
               : '「$_query」の検索結果 ${matches.length} 人',
           style: const TextStyle(
             fontFamily: PasslyFont.family,
@@ -113,7 +113,7 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Text(
-              _query.isEmpty ? 'まだ親しい人がいません' : '該当する人はいません',
+              _query.isEmpty ? 'まだお気に入りの人がいません' : '該当する人はいません',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: PasslyFont.family,
