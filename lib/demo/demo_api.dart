@@ -280,6 +280,13 @@ class DemoApi {
           'met_at': last.metAt.toIso8601String(),
           'event_name': last.event.name,
         },
+      if (demoNextEvents[p.id] case final next?)
+        'next_event': {
+          'title': next.title,
+          'started_at': next.startedAt.toIso8601String(),
+          'place': next.place,
+          'url': next.url,
+        },
     };
   }
 

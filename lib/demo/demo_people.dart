@@ -257,3 +257,67 @@ const List<String> demoTodayPeople = [
   'demo_11',
   'demo_17',
 ];
+
+/// 人ごとの「次に参加するイベント」（相手プロフィールの NEXT EVENT 用）。
+/// MEET STAGE と OBOG 会は実在の connpass イベント、それ以外は架空。
+/// demo_11 と demo_15 は予定なし（「次のイベントはまだありません」の確認用）。
+class DemoNextEvent {
+  final String title;
+  final DateTime startedAt;
+  final String place;
+  final String url;
+
+  const DemoNextEvent(this.title, this.startedAt, this.place, [this.url = '']);
+}
+
+final DemoNextEvent _meetStage = DemoNextEvent(
+  'MEET STAGE in 名古屋 vol.1',
+  DateTime.utc(2026, 11, 8, 4),
+  'ディップ株式会社 名古屋オフィス',
+  'https://localstage.connpass.com/event/408951/',
+);
+final DemoNextEvent _obog = DemoNextEvent(
+  '2026 システム工学研究会 OBOG会',
+  DateTime.utc(2026, 11, 29, 5),
+  '愛知工業大学 八草キャンパス',
+  'https://sysken.connpass.com/event/407711/',
+);
+final DemoNextEvent _flutterMokumoku = DemoNextEvent(
+  'Flutter もくもく会 名古屋',
+  DateTime.utc(2026, 11, 25, 10),
+  'なごやイノベーションスペース',
+);
+final DemoNextEvent _designLt = DemoNextEvent(
+  'デザインと開発のゆるLT会',
+  DateTime.utc(2026, 11, 14, 9),
+  '栄テックラウンジ',
+);
+final DemoNextEvent _goStudy = DemoNextEvent(
+  'Go 勉強会 in 東海',
+  DateTime.utc(2026, 11, 21, 4),
+  '名駅コワーキング 8F',
+);
+final DemoNextEvent _webHack = DemoNextEvent(
+  '学生 Web ハッカソン 秋',
+  DateTime.utc(2026, 11, 15, 1),
+  '名古屋みらい大学 3号館',
+);
+
+final Map<String, DemoNextEvent> demoNextEvents = {
+  'demo_01': _flutterMokumoku,
+  'demo_02': _designLt,
+  'demo_03': _goStudy,
+  'demo_04': _webHack,
+  'demo_05': _meetStage,
+  'demo_06': _goStudy,
+  'demo_07': _meetStage,
+  'demo_08': _flutterMokumoku,
+  'demo_09': _goStudy,
+  'demo_10': _designLt,
+  'demo_12': _webHack,
+  'demo_13': _obog,
+  'demo_14': _flutterMokumoku,
+  'demo_16': _webHack,
+  'demo_17': _obog,
+  'demo_18': _designLt,
+};
