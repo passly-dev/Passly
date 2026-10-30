@@ -93,7 +93,9 @@ class _ProfileBody extends StatelessWidget {
           const SizedBox(height: 16),
           _NameSection(profile: profile),
           const SizedBox(height: 12),
-          Center(child: _FavoriteButton(userId: userId)),
+          Center(
+            child: _FavoriteButton(userId: userId, profile: profile),
+          ),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -325,8 +327,9 @@ class _EncounterCard extends StatelessWidget {
 /// 「☆ お気に入りに追加」/「★ お気に入り済み」のピル。タップで切り替える。
 class _FavoriteButton extends ConsumerWidget {
   final String userId;
+  final UserModel profile;
 
-  const _FavoriteButton({required this.userId});
+  const _FavoriteButton({required this.userId, required this.profile});
 
   static const Color _star = Color(0xFFF5B400);
 
@@ -388,7 +391,7 @@ class _FavoriteButton extends ConsumerWidget {
       if (isFavorite) {
         await notifier.removeFriend(userId);
       } else {
-        await notifier.addFriend(userId);
+        await notifier.addFriend(profile.copyWith(id: userId));
       }
     } catch (_) {
       if (!context.mounted) return;
