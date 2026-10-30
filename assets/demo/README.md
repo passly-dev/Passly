@@ -34,3 +34,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## イベント画像（events/）
+
+ファイル名はイベント ID です。
+
+- `1.jpg`（Passly 体験会）: アプリのアイコンを緑のグラデーションに載せて作ったものです
+- それ以外: 各イベントの connpass ページのメイン画像を、幅 800px 以下に縮小したものです。著作権は各主催者にあります
+
+| ファイル | イベント | 出典 |
+|---|---|---|
+| 390965.jpg | 【非公式】技育祭東海 後夜祭 | https://c0de.connpass.com/event/390965/ |
+| 391293.jpg | Matsuriba Vol.14 | https://nxtend.connpass.com/event/391293/ |
+| 396090.jpg | 東海学生団体対抗運動会 | https://jogiken.connpass.com/event/396090/ |
+| 396200.jpg | Matsuriba Vol.15 | https://nxtend.connpass.com/event/396200/ |
+| 381453.jpg | 29Tech vol.2 | https://nxtend.connpass.com/event/381453/ |
+| 397535.jpg | デザインシステム勉強会 | https://dip-dev.connpass.com/event/397535/ |
+| 386955.jpg | STECH CONNECT TOKAI 2026 | https://careerselect-studygroup.connpass.com/event/386955/ |
+| 399497.jpg | HACK STAGE\|STAGE3 | https://localstage.connpass.com/event/399497/ |
+| 396971.jpg | STECH FES 2026 | https://careerselect-studygroup.connpass.com/event/396971/ |
+| 404056.jpg | Matsuriba夏祭り | https://nxtend.connpass.com/event/404056/ |

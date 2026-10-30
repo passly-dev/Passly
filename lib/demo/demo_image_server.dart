@@ -4,15 +4,16 @@ import 'dart:ui' as ui;
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 
-/// デモ用のアイコン画像を返す端末内サーバー。
+/// デモ用の画像（人物のアイコンとイベント画像）を返す端末内サーバー。
 ///
-/// assets/demo/avatars/<人物 ID>.png のイラストを返し、なければ
+/// アイコンは assets/demo/avatars/<人物 ID>.png を返し、なければ
 /// 名前の頭文字 + 淡い背景色の画像を作って返す。
-/// アプリの各画面は icon_url を Image.network で読むので、
-/// 127.0.0.1 で画像を返せば本番の表示コードを変えずにアイコンを出せる。
+/// イベント画像は assets/demo/events/<イベント ID>.jpg を返す。
+/// アプリの各画面は画像 URL を Image.network で読むので、
+/// 127.0.0.1 で画像を返せば本番の表示コードを変えずに画像を出せる。
 /// 外部への通信はしない。
-class DemoAvatarServer {
-  DemoAvatarServer._();
+class DemoImageServer {
+  DemoImageServer._();
 
   static HttpServer? _server;
   static final Map<String, List<int>> _cache = {};
@@ -35,6 +36,16 @@ class DemoAvatarServer {
     _server = server;
     server.listen((request) async {
       final params = request.uri.queryParameters;
+      if (request.uri.path == '/event.jpg') {
+        final bytes = await _load(
+          'assets/demo/events/${params['id'] ?? ''}.jpg',
+        );
+        request.response.statusCode = bytes == null ? 404 : 200;
+        request.response.headers.contentType = ContentType('image', 'jpeg');
+        if (bytes != null) request.response.add(bytes);
+        await request.response.close();
+        return;
+      }
       final bytes =
           await _loadAsset(params['id'] ?? '') ??
           await _render(
@@ -64,10 +75,27 @@ class DemoAvatarServer {
     ).toString();
   }
 
+  /// [eventId] のイベント画像の URL。サーバーが動いていなければ空文字。
+  static String eventImageUrlFor(int eventId) {
+    final server = _server;
+    if (server == null) return '';
+    return Uri(
+      scheme: 'http',
+      host: '127.0.0.1',
+      port: server.port,
+      path: '/event.jpg',
+      queryParameters: {'id': '$eventId'},
+    ).toString();
+  }
+
   static Future<List<int>?> _loadAsset(String id) async {
     if (id.isEmpty) return null;
+    return _load('assets/demo/avatars/$id.png');
+  }
+
+  static Future<List<int>?> _load(String path) async {
     try {
-      final data = await rootBundle.load('assets/demo/avatars/$id.png');
+      final data = await rootBundle.load(path);
       return data.buffer.asUint8List();
     } catch (_) {
       return null;

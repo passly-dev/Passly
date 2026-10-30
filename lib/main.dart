@@ -7,13 +7,13 @@ import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/constants/app_colors.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/core/network/network_sync_provider.dart';
-import 'package:passly/demo/demo_avatar_server.dart';
+import 'package:passly/demo/demo_image_server.dart';
 
 Future<void> main() async {
   // デモモードではアイコン画像を端末内で用意する
   if (FeatureFlags.demoMode) {
     WidgetsFlutterBinding.ensureInitialized();
-    await DemoAvatarServer.start();
+    await DemoImageServer.start();
   }
 
   // Riverpodの状態管理スコープでアプリ全体をラップ

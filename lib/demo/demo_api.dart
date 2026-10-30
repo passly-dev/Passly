@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'package:passly/core/utils/app_time.dart';
-import 'package:passly/demo/demo_avatar_server.dart';
+import 'package:passly/demo/demo_image_server.dart';
 import 'package:passly/demo/demo_events.dart';
 import 'package:passly/demo/demo_people.dart';
 
@@ -216,6 +216,9 @@ class DemoApi {
       'event_url': event?.url ?? '',
       'event_id': event?.id,
       'participant_count': event?.accepted,
+      'event_image_url': event == null
+          ? ''
+          : DemoImageServer.eventImageUrlFor(event.id),
       'users': [for (final r in records) _shortUserJson(_person(r.personId)!)],
     };
   }
@@ -227,6 +230,7 @@ class DemoApi {
     'end_at': e.endAt.toIso8601String(),
     'location': e.location,
     'event_url': e.url,
+    'image_url': DemoImageServer.eventImageUrlFor(e.id),
     'description': e.description,
     'accepted': e.accepted,
     'waiting': 0,
@@ -336,10 +340,10 @@ class DemoApi {
 
   /// イラストのアイコン（なければ頭文字）。色は人ごとに変える（自分は 0 番）。
   static String _icon(String id) {
-    if (id == demoMeId) return DemoAvatarServer.urlFor(id, demoMe.name, 0);
+    if (id == demoMeId) return DemoImageServer.urlFor(id, demoMe.name, 0);
     final index = demoPeople.indexWhere((p) => p.id == id);
     if (index < 0) return '';
-    return DemoAvatarServer.urlFor(id, demoPeople[index].name, index + 1);
+    return DemoImageServer.urlFor(id, demoPeople[index].name, index + 1);
   }
 }
 
