@@ -82,8 +82,10 @@ class EventAlbumScreen extends ConsumerWidget {
   }
 }
 
-void _openDay(BuildContext context, EventSummary e) =>
-    context.push('/encounters/day/${eventDateParam(e.day)}');
+/// イベント詳細へ。ID がなければその日に出会った人の一覧へ。
+void _openEvent(BuildContext context, EventSummary e) => e.id != null
+    ? context.push('/events/${e.id}')
+    : context.push('/encounters/day/${eventDateParam(e.day)}');
 
 const Color _upcomingAccent = Color(0xFFF59E0A);
 const Color _sameTagBg = Color(0xFFE8F5E8);
@@ -200,25 +202,44 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
         ),
+        // 白いピルが選んだ側へすべって動く（色をフェードさせると途中が灰色に見えるため）
         Container(
+          width: 78,
           height: 32,
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: PasslyBorder.defaultBorder,
             borderRadius: BorderRadius.circular(999),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              _ToggleSegment(
-                selected: !grid,
-                onTap: () => onChanged(false),
-                child: const _ListIcon(),
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                alignment: grid ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 36,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: PasslyBg.surface,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
               ),
-              _ToggleSegment(
-                selected: grid,
-                onTap: () => onChanged(true),
-                child: const _GridIcon(),
+              Row(
+                children: [
+                  _ToggleSegment(
+                    selected: !grid,
+                    onTap: () => onChanged(false),
+                    child: const _ListIcon(),
+                  ),
+                  const Spacer(),
+                  _ToggleSegment(
+                    selected: grid,
+                    onTap: () => onChanged(true),
+                    child: const _GridIcon(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -244,15 +265,10 @@ class _ToggleSegment extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+      child: Container(
         width: 36,
         height: 26,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? PasslyBg.surface : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-        ),
         child: IconTheme(
           data: IconThemeData(
             color: selected ? PasslyBrand.primary : PasslyText.tertiary,
@@ -484,7 +500,7 @@ class _LargeEventCard extends StatelessWidget {
     final metCount = event.metUsers.length;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => _openDay(context, event),
+      onTap: () => _openEvent(context, event),
       child: PressFeedback(
         child: Container(
           clipBehavior: Clip.antiAlias,
@@ -617,7 +633,7 @@ class _SmallEventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => _openDay(context, event),
+      onTap: () => _openEvent(context, event),
       child: PressFeedback(
         child: Container(
           clipBehavior: Clip.antiAlias,
