@@ -32,7 +32,7 @@ class DemoEvent {
   });
 
   /// 会場名と住所を 1 行にしたもの。
-  String get location => '$place（$address）';
+  String get location => address.isEmpty ? place : '$place（$address）';
 }
 
 final List<DemoEvent> demoEvents = [
@@ -185,6 +185,20 @@ final List<DemoEvent> demoEvents = [
     description:
         '東海地区最大のエンジニアの夏祭り。技術への情熱を持つ学生 IT エンジニアが'
         '「祭り」という非日常の空間で交流を深めます。',
+  ),
+  // これから参加するイベント（「これから」の表示用）。
+  DemoEvent(
+    id: 2,
+    name: '技育展2026 本選',
+    group: 'サポーターズ',
+    startAt: DateTime.utc(2026, 11, 28, 1),
+    endAt: DateTime.utc(2026, 11, 28, 9),
+    place: '',
+    address: '',
+    url: '',
+    accepted: 0,
+    limit: 0,
+    description: '技育展2026 の本選。予選を通過したチームが発表します。',
   ),
 ];
 
