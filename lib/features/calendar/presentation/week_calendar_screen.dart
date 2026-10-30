@@ -218,17 +218,17 @@ class _NavChevronButton extends StatelessWidget {
 ///
 /// 横にスワイプすると前後の週へ移動し、選択日は同じ曜日のまま 7 日ずれる。
 /// 月ナビや検索で選択日が別の週へ飛んだときは、その週のページへ移る。
-class _WeekStrip extends StatefulWidget {
+class _WeekStrip extends ConsumerStatefulWidget {
   final DateTime selectedDate;
   final void Function(DateTime date) onSelect;
 
   const _WeekStrip({required this.selectedDate, required this.onSelect});
 
   @override
-  State<_WeekStrip> createState() => _WeekStripState();
+  ConsumerState<_WeekStrip> createState() => _WeekStripState();
 }
 
-class _WeekStripState extends State<_WeekStrip> {
+class _WeekStripState extends ConsumerState<_WeekStrip> {
   /// 前後どちらにも十分スワイプできるよう、真ん中あたりのページから始める。
   static const int _basePage = 10000;
 
@@ -281,27 +281,41 @@ class _WeekStripState extends State<_WeekStrip> {
 
   @override
   Widget build(BuildContext context) {
+    final eventDates =
+        ref.watch(calendarEventDatesProvider).value ?? const <DateTime>{};
+    final now = AppTime.nowLocal();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // 目印が右上に少しはみ出すので、その分だけ上と右に余白を取る
     return SizedBox(
-      height: 76,
+      height: 80,
       child: PageView.builder(
         controller: _controller,
         onPageChanged: _onPageChanged,
         itemBuilder: (context, page) {
           final weekStart = _weekStartOf(page);
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (index) {
-              final date = DateTime(
-                weekStart.year,
-                weekStart.month,
-                weekStart.day + index,
-              );
-              return WeekDayPill(
-                date: date,
-                isSelected: _isSameDay(date, widget.selectedDate),
-                onTap: () => widget.onSelect(date),
-              );
-            }),
+          return Padding(
+            padding: const EdgeInsets.only(top: 4, right: 3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(7, (index) {
+                final date = DateTime(
+                  weekStart.year,
+                  weekStart.month,
+                  weekStart.day + index,
+                );
+                return WeekDayPill(
+                  date: date,
+                  isSelected: _isSameDay(date, widget.selectedDate),
+                  onTap: () => widget.onSelect(date),
+                  badgeColor: !eventDates.contains(date)
+                      ? null
+                      : date.isAfter(today)
+                      ? WeekDayPill.upcomingEventBadge
+                      : WeekDayPill.pastEventBadge,
+                );
+              }),
+            ),
           );
         },
       ),

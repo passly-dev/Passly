@@ -37,6 +37,16 @@ class CalendarState {
   }
 }
 
+/// イベントがある日付の一覧（週表示の目印用）。取得に失敗したら空。
+final calendarEventDatesProvider = FutureProvider<Set<DateTime>>((ref) async {
+  ref.watch(authNotifierProvider.select((s) => s.value?.id));
+  try {
+    return await ref.read(calendarRepositoryProvider).fetchEventDates();
+  } catch (_) {
+    return const {};
+  }
+});
+
 /// カレンダー画面のデータを管理するプロバイダー
 final calendarNotifierProvider =
     NotifierProvider<CalendarNotifier, CalendarState>(CalendarNotifier.new);

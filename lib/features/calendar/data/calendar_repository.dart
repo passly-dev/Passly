@@ -87,6 +87,22 @@ class CalendarRepository {
     ).toList();
   }
 
+  /// イベントがある日付（日本時間の年月日）をすべて返す（GET /events）。
+  /// 週表示の目印に使う。月をまたぐ週でも出せるよう、月で絞らない。
+  Future<Set<DateTime>> fetchEventDates() async {
+    final response = await _dio.get('/events');
+    final data = response.data;
+    if (data is! List) return const {};
+    final dates = <DateTime>{};
+    for (final raw in data.whereType<Map>()) {
+      final startAtUtc = DateTime.tryParse(raw['start_at']?.toString() ?? '');
+      if (startAtUtc == null) continue;
+      final local = AppTime.toAppLocal(startAtUtc);
+      dates.add(DateTime(local.year, local.month, local.day));
+    }
+    return dates;
+  }
+
   /// 指定月のすれ違い情報を「日付 → data」のマップで返す。
   ///
   /// 呼び出し側は日別 API のループを直接組む必要がなくなる。
