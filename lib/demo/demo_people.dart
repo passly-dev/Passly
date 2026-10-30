@@ -52,6 +52,7 @@ const List<DemoPerson> demoPeople = [
     role: 'frontend',
     tags: ['Flutter', 'Dart', 'Figma', 'Go', 'Firebase'],
     twitterUrl: 'https://x.com/set_official',
+    githubUrl: 'https://github.com/SystemEngineeringTeam',
   ),
   DemoPerson(
     id: 'demo_02',
