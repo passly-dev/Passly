@@ -176,14 +176,15 @@ class _HeroSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const _TitleSection(),
+              // タイトルとアイコンの間は 47。2 人以上なら間に進み具合の点を置く。
               if (total >= 2) ...[
                 const SizedBox(height: 30),
                 _ProgressDots(current: current, total: total),
                 const SizedBox(height: 11),
               ] else
-                const SizedBox(height: 20),
+                const SizedBox(height: 47),
               _AvatarPair(myIconUrl: myIconUrl, encounter: encounter),
-              const SizedBox(height: 20),
+              const SizedBox(height: 47),
               _EncounteredName(name: encounter.encounteredUser.name),
             ],
           ),
@@ -376,7 +377,6 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.backgroundWhite,
-        border: Border.all(color: AppColors.backgroundWhite, width: 4),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.25),
