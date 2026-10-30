@@ -2,9 +2,12 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 
-/// デモ用のアイコン画像（名前の頭文字 + 淡い背景色の丸）を返す端末内サーバー。
+/// デモ用のアイコン画像を返す端末内サーバー。
 ///
+/// assets/demo/avatars/<人物 ID>.png のイラストを返し、なければ
+/// 名前の頭文字 + 淡い背景色の画像を作って返す。
 /// アプリの各画面は icon_url を Image.network で読むので、
 /// 127.0.0.1 で画像を返せば本番の表示コードを変えずにアイコンを出せる。
 /// 外部への通信はしない。
@@ -32,10 +35,12 @@ class DemoAvatarServer {
     _server = server;
     server.listen((request) async {
       final params = request.uri.queryParameters;
-      final bytes = await _render(
-        initial: params['c'] ?? '',
-        colorIndex: int.tryParse(params['i'] ?? '') ?? 0,
-      );
+      final bytes =
+          await _loadAsset(params['id'] ?? '') ??
+          await _render(
+            initial: params['c'] ?? '',
+            colorIndex: int.tryParse(params['i'] ?? '') ?? 0,
+          );
       request.response
         ..headers.contentType = ContentType('image', 'png')
         ..add(bytes);
@@ -43,9 +48,10 @@ class DemoAvatarServer {
     });
   }
 
-  /// [name] の頭文字と [colorIndex] 番目の色でアイコンを作る URL。
+  /// [id] の人のアイコンの URL。イラストがなければ [name] の頭文字と
+  /// [colorIndex] 番目の色で作る。
   /// サーバーが動いていなければ空文字（アプリ標準の人型アイコンになる）。
-  static String urlFor(String name, int colorIndex) {
+  static String urlFor(String id, String name, int colorIndex) {
     final server = _server;
     if (server == null || name.isEmpty) return '';
     final initial = String.fromCharCode(name.runes.first);
@@ -54,8 +60,18 @@ class DemoAvatarServer {
       host: '127.0.0.1',
       port: server.port,
       path: '/avatar.png',
-      queryParameters: {'c': initial, 'i': '$colorIndex'},
+      queryParameters: {'id': id, 'c': initial, 'i': '$colorIndex'},
     ).toString();
+  }
+
+  static Future<List<int>?> _loadAsset(String id) async {
+    if (id.isEmpty) return null;
+    try {
+      final data = await rootBundle.load('assets/demo/avatars/$id.png');
+      return data.buffer.asUint8List();
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<List<int>> _render({

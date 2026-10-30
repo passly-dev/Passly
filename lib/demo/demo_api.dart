@@ -334,12 +334,12 @@ class DemoApi {
 
   DemoEvent? _event(int? id) => _events.where((e) => e.id == id).firstOrNull;
 
-  /// 頭文字のアイコン。色は人ごとに変える（自分は 0 番）。
+  /// イラストのアイコン（なければ頭文字）。色は人ごとに変える（自分は 0 番）。
   static String _icon(String id) {
-    if (id == demoMeId) return DemoAvatarServer.urlFor(demoMe.name, 0);
+    if (id == demoMeId) return DemoAvatarServer.urlFor(id, demoMe.name, 0);
     final index = demoPeople.indexWhere((p) => p.id == id);
     if (index < 0) return '';
-    return DemoAvatarServer.urlFor(demoPeople[index].name, index + 1);
+    return DemoAvatarServer.urlFor(id, demoPeople[index].name, index + 1);
   }
 }
 

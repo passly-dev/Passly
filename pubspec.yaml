@@ -93,6 +93,7 @@ flutter:
     - assets/images/nav/
     - assets/images/icons/
     - assets/images/backgrounds/
+    - assets/demo/avatars/
 
 flutter_launcher_icons:
   image_path: "assets/images/app_icon.png"
