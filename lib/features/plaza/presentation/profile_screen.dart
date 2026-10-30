@@ -322,16 +322,10 @@ class _EncounterCard extends StatelessWidget {
     return EncounterMetaPill(text: _formatLastEncounter());
   }
 
+  /// 「◯◯ で出会いました」。日付を入れると長くて切れるので出さない。
   String _formatLastEncounter() {
-    final last = profile.lastEncounter;
-    if (last == null) {
-      return 'すれ違いました';
-    }
-    final local = AppTime.toAppLocal(last.metAt);
-    final month = local.month;
-    final day = local.day;
-    final eventName = last.eventName.isEmpty ? 'イベント' : last.eventName;
-    return '$month月$day日 $eventName で出会いました';
+    final eventName = profile.lastEncounter?.eventName.trim() ?? '';
+    return eventName.isEmpty ? 'すれ違いで出会いました' : '$eventName で出会いました';
   }
 }
 
