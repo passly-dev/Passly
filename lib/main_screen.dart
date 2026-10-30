@@ -366,6 +366,11 @@ class _MainScreenState extends ConsumerState<MainScreen>
     // マイページ編集中はボトムナビを非表示にして、編集操作 (キャンセル / 保存)
     // に集中できるようにする。
     final hideBottomNav = ref.watch(myPageEditingProvider);
+    final showPocketModeButton =
+        !hideBottomNav &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        widget.navigationShell.currentIndex == 0 &&
+        (ref.watch(settingsNotifierProvider).value?.isBleEnabled ?? true);
 
     return Stack(
       children: [
@@ -375,6 +380,14 @@ class _MainScreenState extends ConsumerState<MainScreen>
           body: widget.navigationShell,
           bottomNavigationBar: hideBottomNav ? null : _buildBottomNav(context),
         ),
+        // ポケットモードの切り替え（iOS のホームだけ。右端から 16、ナビの上端から 16 上）。
+        // ナビの Stack の外にはみ出して置くとタップが届かないので、画面全体の Stack に置く。
+        if (showPocketModeButton)
+          Positioned(
+            right: 16,
+            bottom: MediaQuery.paddingOf(context).bottom + 15 + 64 + 16,
+            child: const PocketModeButton(),
+          ),
         if (shouldBlackoutScreen)
           Positioned.fill(
             child: AbsorbPointer(
@@ -403,11 +416,6 @@ class _MainScreenState extends ConsumerState<MainScreen>
               currentIndex: widget.navigationShell.currentIndex,
               onTap: (index) => _onTap(context, index),
             ),
-            // ポケットモードの切り替え（iOS のホームだけ。ナビの上端から 16 上）
-            if (isBleEnabled &&
-                defaultTargetPlatform == TargetPlatform.iOS &&
-                widget.navigationShell.currentIndex == 0)
-              const Positioned(right: 1, bottom: 80, child: PocketModeButton()),
             if (!isBleEnabled)
               Positioned(
                 right: 0,
