@@ -2,20 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:passly/common/widgets/common_tag_chip.dart';
+import 'package:passly/common/widgets/common_tag_person_card.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:passly/common/widgets/passly_header.dart';
-import 'package:passly/common/widgets/recent_encounter_card.dart';
 import 'package:passly/core/constants/app_colors.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
 import 'package:passly/features/home/presentation/widgets/power_mode_toggle.dart';
 import 'package:passly/core/utils/app_time.dart';
+import 'package:passly/features/user/domain/common_tags.dart';
 
 /// ホーム画面。
 ///
-/// 「今日すれ違った人」だけを並べるシンプルな構成。
-/// すれ違い数のレベル表示と最近の出会いカードは作り直しで削除した。
+/// 今日すれ違った人のうち，共通タグのある人だけを出す。
+/// いちばん共通点が多い人を大きいカードで上に置き，残りは一覧にする。
+/// 話しかける勇気がない人でも，共通点がある人なら最初の一言をかけやすいため。
 /// 右上には擬似フォアグラウンド ON/OFF を切り替える [PowerModeToggle] を配置。
 ///
 /// ボトムナビは [MainScreen] 側で `PasslyBottomNav` として全タブ共通で描画する。
@@ -34,7 +37,7 @@ class HomeScreen extends ConsumerWidget {
         children: [
           const PasslyHeader(
             title: 'おかえり！',
-            subtitle: '今日すれ違った人を見てみよう',
+            subtitle: '今日の出会いを見てみよう',
             trailing: [PowerModeToggle()],
           ),
           Expanded(
@@ -60,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
     HomeState data, {
     bool isLoading = false,
   }) {
-    final todayEncounters = _filterToday(data.recentEncounters);
+    final todayEncounters = _uniqueByUser(_filterToday(data.recentEncounters));
 
     return RefreshIndicator(
       color: PasslyBrand.primary,
@@ -73,60 +76,80 @@ class HomeScreen extends ConsumerWidget {
           top: PasslySpace.s24,
           bottom: 120,
         ),
-        children: [
-          const Text(
-            '今日すれ違った人',
-            style: TextStyle(
-              fontFamily: PasslyFont.family,
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              height: 24 / 20,
-            ),
-          ),
-          const SizedBox(height: 13),
-          if (isLoading)
-            const LoadingCardsSkeleton()
-          else
-            ..._buildRecentEncounters(context, todayEncounters),
-        ],
+        children: isLoading
+            ? const [LoadingCardsSkeleton()]
+            : _buildCommonTagSections(context, ref, todayEncounters),
       ),
     );
   }
 
-  List<Widget> _buildRecentEncounters(
+  /// 「いちばん共通点が多い人」の大きいカードと「ほかに共通点のある人」一覧。
+  ///
+  /// 共通タグのない人はホームには出さない（なくても成り立つ情報は入れない）。
+  List<Widget> _buildCommonTagSections(
     BuildContext context,
+    WidgetRef ref,
     List<RecentEncounter> items,
   ) {
     if (items.isEmpty) {
-      return [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: PasslySpace.s16),
-          child: Text(
-            '今日はまだ誰ともすれ違っていません',
-            style: TextStyle(
-              fontFamily: PasslyFont.family,
-              color: PasslyText.secondary,
-              fontSize: 14,
-              fontWeight: PasslyFont.medium,
-            ),
-          ),
+      return const [_EmptyMessage(text: '今日はまだ誰ともすれ違っていません')];
+    }
+
+    final tagsByUser = <String, AsyncValue<List<String>>>{
+      for (final e in items)
+        e.userId: ref.watch(
+          commonTagsProvider((userId: e.userId, techStack: e.techStack)),
         ),
+    };
+    List<String> tagsOf(RecentEncounter e) =>
+        tagsByUser[e.userId]?.asData?.value ?? const [];
+
+    final withCommon = items.where((e) => tagsOf(e).isNotEmpty).toList();
+    final stillLoading = tagsByUser.values.any((v) => v.isLoading);
+
+    if (withCommon.isEmpty) {
+      return [
+        if (stillLoading)
+          const LoadingCardsSkeleton(count: 2)
+        else
+          const _EmptyMessage(text: '今日すれ違った人の中に，共通タグのある人はいませんでした'),
       ];
     }
+
+    final featured = pickMostCommon(withCommon, tagsOf)!;
+    final others = withCommon.where((e) => e != featured).toList();
+
     return [
-      for (final e in items)
-        Padding(
-          padding: const EdgeInsets.only(bottom: PasslySpace.s4),
-          child: RecentEncounterCard(
-            avatarUrl: e.iconUrl.isNotEmpty ? e.iconUrl : null,
-            name: e.name,
-            time: _formatTime(e.metAt),
-            location: e.eventName,
-            onTap: () => context.push('/profile/${e.userId}'),
+      const _SectionTitle('いちばん共通点が多い人'),
+      const SizedBox(height: PasslySpace.s20),
+      _FeaturedCard(
+        encounter: featured,
+        commonTags: tagsOf(featured),
+        onTap: () => context.push('/profile/${featured.userId}'),
+      ),
+      if (others.isNotEmpty) ...[
+        const SizedBox(height: PasslySpace.s24),
+        const _SectionTitle('ほかに共通点のある人'),
+        const SizedBox(height: PasslySpace.s20),
+        for (final e in others)
+          Padding(
+            padding: const EdgeInsets.only(bottom: PasslySpace.s4),
+            child: CommonTagPersonCard(
+              name: e.name,
+              iconUrl: e.iconUrl,
+              commonTags: tagsOf(e),
+              onTap: () => context.push('/profile/${e.userId}'),
+            ),
           ),
-        ),
+      ],
     ];
+  }
+
+  /// 同じ人と何度すれ違っても 1 件にまとめる（新しい方を残す）。
+  List<RecentEncounter> _uniqueByUser(List<RecentEncounter> items) {
+    final sorted = [...items]..sort((a, b) => b.metAt.compareTo(a.metAt));
+    final seen = <String>{};
+    return sorted.where((e) => seen.add(e.userId)).toList();
   }
 
   /// 日本時間で今日すれ違った人だけに絞る。
@@ -138,10 +161,6 @@ class HomeScreen extends ConsumerWidget {
           local.month == today.month &&
           local.day == today.day;
     }).toList();
-  }
-
-  static String _formatTime(DateTime dt) {
-    return AppTime.formatHHMM(dt);
   }
 
   Widget _buildErrorState(WidgetRef ref) {
@@ -168,6 +187,205 @@ class HomeScreen extends ConsumerWidget {
             child: const Text('再試行', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  const _SectionTitle(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontFamily: PasslyFont.family,
+        color: AppColors.textPrimary,
+        fontSize: 20,
+        fontWeight: FontWeight.w900,
+        height: 24 / 20,
+      ),
+    );
+  }
+}
+
+class _EmptyMessage extends StatelessWidget {
+  final String text;
+  const _EmptyMessage({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: PasslySpace.s16),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontFamily: PasslyFont.family,
+          color: PasslyText.secondary,
+          fontSize: 14,
+          fontWeight: PasslyFont.medium,
+        ),
+      ),
+    );
+  }
+}
+
+/// いちばん共通点が多い人のカード。
+///
+/// アイコン + 名前 + 「◯◯ですれ違いました」，同じタグ（全部・折り返し），
+/// 「プロフィールを見る」ボタン。
+class _FeaturedCard extends StatelessWidget {
+  final RecentEncounter encounter;
+  final List<String> commonTags;
+  final VoidCallback onTap;
+
+  const _FeaturedCard({
+    required this.encounter,
+    required this.commonTags,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final eventName = encounter.eventName.trim();
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: PasslyBg.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              _FeaturedAvatar(url: encounter.iconUrl),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      encounter.name.isEmpty ? '名前未設定' : encounter.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: PasslyFont.family,
+                        color: AppColors.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        height: 24 / 20,
+                      ),
+                    ),
+                    if (eventName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '$eventName ですれ違いました',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: PasslyFont.family,
+                          color: PasslyText.secondary,
+                          fontSize: 12,
+                          fontWeight: PasslyFont.regular,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 3, right: 6),
+                child: Text(
+                  '同じタグ',
+                  style: TextStyle(
+                    fontFamily: PasslyFont.family,
+                    color: PasslyBrand.primaryDark,
+                    fontSize: 12,
+                    fontWeight: PasslyFont.bold,
+                  ),
+                ),
+              ),
+              Expanded(child: CommonTagWrap(tags: commonTags)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(100),
+              onTap: onTap,
+              child: Container(
+                height: 50,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: PasslyBrand.primaryLight,
+                  borderRadius: BorderRadius.circular(100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'プロフィールを見る',
+                  style: TextStyle(
+                    fontFamily: PasslyFont.family,
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 16.8 / 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedAvatar extends StatelessWidget {
+  final String url;
+  const _FeaturedAvatar({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Container(
+      color: PasslyBg.elevated,
+      alignment: Alignment.center,
+      child: const Icon(Icons.person, color: PasslyText.tertiary, size: 32),
+    );
+    return ClipOval(
+      child: SizedBox(
+        width: 63,
+        height: 63,
+        child: url.isNotEmpty
+            ? Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => fallback,
+              )
+            : fallback,
       ),
     );
   }

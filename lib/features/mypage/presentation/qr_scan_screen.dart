@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'package:passly/common/widgets/passly_glass_circle.dart';
+import 'package:passly/common/widgets/passly_circle_button.dart';
 import 'package:passly/common/widgets/passly_icon.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 
@@ -79,18 +79,12 @@ class _QrScanScreenState extends State<QrScanScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Align(
                 alignment: Alignment.topLeft,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
+                child: PasslyCircleButton(
+                  asset: PasslyIcons.chevron,
+                  iconSize: 23.8,
                   onTap: () {
                     if (context.canPop()) context.pop();
                   },
-                  child: const PasslyGlassCircle(
-                    child: PasslyIcon(
-                      asset: PasslyIcons.chevron,
-                      size: 24,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
               ),
             ),

@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RecentEncounter {
 
-@JsonKey(name: 'user_id') String get userId; String get name;@JsonKey(name: 'icon_url') String get iconUrl;@JsonKey(name: 'met_at') DateTime get metAt;@JsonKey(name: 'event_name') String get eventName;
+@JsonKey(name: 'user_id') String get userId; String get name;@JsonKey(name: 'icon_url') String get iconUrl;@JsonKey(name: 'met_at') DateTime get metAt;@JsonKey(name: 'event_name') String get eventName;/// 相手の技術スタック。サーバーが返さない間は空で、
+/// 共通タグは GET /users/:id から補う。
+@JsonKey(name: 'tech_stack') String get techStack;
 /// Create a copy of RecentEncounter
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +30,16 @@ $RecentEncounterCopyWith<RecentEncounter> get copyWith => _$RecentEncounterCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecentEncounter&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.metAt, metAt) || other.metAt == metAt)&&(identical(other.eventName, eventName) || other.eventName == eventName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecentEncounter&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.metAt, metAt) || other.metAt == metAt)&&(identical(other.eventName, eventName) || other.eventName == eventName)&&(identical(other.techStack, techStack) || other.techStack == techStack));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userId,name,iconUrl,metAt,eventName);
+int get hashCode => Object.hash(runtimeType,userId,name,iconUrl,metAt,eventName,techStack);
 
 @override
 String toString() {
-  return 'RecentEncounter(userId: $userId, name: $name, iconUrl: $iconUrl, metAt: $metAt, eventName: $eventName)';
+  return 'RecentEncounter(userId: $userId, name: $name, iconUrl: $iconUrl, metAt: $metAt, eventName: $eventName, techStack: $techStack)';
 }
 
 
@@ -48,7 +50,7 @@ abstract mixin class $RecentEncounterCopyWith<$Res>  {
   factory $RecentEncounterCopyWith(RecentEncounter value, $Res Function(RecentEncounter) _then) = _$RecentEncounterCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'user_id') String userId, String name,@JsonKey(name: 'icon_url') String iconUrl,@JsonKey(name: 'met_at') DateTime metAt,@JsonKey(name: 'event_name') String eventName
+@JsonKey(name: 'user_id') String userId, String name,@JsonKey(name: 'icon_url') String iconUrl,@JsonKey(name: 'met_at') DateTime metAt,@JsonKey(name: 'event_name') String eventName,@JsonKey(name: 'tech_stack') String techStack
 });
 
 
@@ -65,13 +67,14 @@ class _$RecentEncounterCopyWithImpl<$Res>
 
 /// Create a copy of RecentEncounter
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userId = null,Object? name = null,Object? iconUrl = null,Object? metAt = null,Object? eventName = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userId = null,Object? name = null,Object? iconUrl = null,Object? metAt = null,Object? eventName = null,Object? techStack = null,}) {
   return _then(_self.copyWith(
 userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,iconUrl: null == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
 as String,metAt: null == metAt ? _self.metAt : metAt // ignore: cast_nullable_to_non_nullable
 as DateTime,eventName: null == eventName ? _self.eventName : eventName // ignore: cast_nullable_to_non_nullable
+as String,techStack: null == techStack ? _self.techStack : techStack // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -157,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'user_id')  String userId,  String name, @JsonKey(name: 'icon_url')  String iconUrl, @JsonKey(name: 'met_at')  DateTime metAt, @JsonKey(name: 'event_name')  String eventName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'user_id')  String userId,  String name, @JsonKey(name: 'icon_url')  String iconUrl, @JsonKey(name: 'met_at')  DateTime metAt, @JsonKey(name: 'event_name')  String eventName, @JsonKey(name: 'tech_stack')  String techStack)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RecentEncounter() when $default != null:
-return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventName);case _:
+return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventName,_that.techStack);case _:
   return orElse();
 
 }
@@ -178,10 +181,10 @@ return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventNam
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'user_id')  String userId,  String name, @JsonKey(name: 'icon_url')  String iconUrl, @JsonKey(name: 'met_at')  DateTime metAt, @JsonKey(name: 'event_name')  String eventName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'user_id')  String userId,  String name, @JsonKey(name: 'icon_url')  String iconUrl, @JsonKey(name: 'met_at')  DateTime metAt, @JsonKey(name: 'event_name')  String eventName, @JsonKey(name: 'tech_stack')  String techStack)  $default,) {final _that = this;
 switch (_that) {
 case _RecentEncounter():
-return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventName);case _:
+return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventName,_that.techStack);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +201,10 @@ return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventNam
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'user_id')  String userId,  String name, @JsonKey(name: 'icon_url')  String iconUrl, @JsonKey(name: 'met_at')  DateTime metAt, @JsonKey(name: 'event_name')  String eventName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'user_id')  String userId,  String name, @JsonKey(name: 'icon_url')  String iconUrl, @JsonKey(name: 'met_at')  DateTime metAt, @JsonKey(name: 'event_name')  String eventName, @JsonKey(name: 'tech_stack')  String techStack)?  $default,) {final _that = this;
 switch (_that) {
 case _RecentEncounter() when $default != null:
-return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventName);case _:
+return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventName,_that.techStack);case _:
   return null;
 
 }
@@ -213,7 +216,7 @@ return $default(_that.userId,_that.name,_that.iconUrl,_that.metAt,_that.eventNam
 @JsonSerializable()
 
 class _RecentEncounter implements RecentEncounter {
-  const _RecentEncounter({@JsonKey(name: 'user_id') required this.userId, this.name = '', @JsonKey(name: 'icon_url') this.iconUrl = '', @JsonKey(name: 'met_at') required this.metAt, @JsonKey(name: 'event_name') this.eventName = ''});
+  const _RecentEncounter({@JsonKey(name: 'user_id') required this.userId, this.name = '', @JsonKey(name: 'icon_url') this.iconUrl = '', @JsonKey(name: 'met_at') required this.metAt, @JsonKey(name: 'event_name') this.eventName = '', @JsonKey(name: 'tech_stack') this.techStack = ''});
   factory _RecentEncounter.fromJson(Map<String, dynamic> json) => _$RecentEncounterFromJson(json);
 
 @override@JsonKey(name: 'user_id') final  String userId;
@@ -221,6 +224,9 @@ class _RecentEncounter implements RecentEncounter {
 @override@JsonKey(name: 'icon_url') final  String iconUrl;
 @override@JsonKey(name: 'met_at') final  DateTime metAt;
 @override@JsonKey(name: 'event_name') final  String eventName;
+/// 相手の技術スタック。サーバーが返さない間は空で、
+/// 共通タグは GET /users/:id から補う。
+@override@JsonKey(name: 'tech_stack') final  String techStack;
 
 /// Create a copy of RecentEncounter
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecentEncounter&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.metAt, metAt) || other.metAt == metAt)&&(identical(other.eventName, eventName) || other.eventName == eventName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecentEncounter&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.metAt, metAt) || other.metAt == metAt)&&(identical(other.eventName, eventName) || other.eventName == eventName)&&(identical(other.techStack, techStack) || other.techStack == techStack));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userId,name,iconUrl,metAt,eventName);
+int get hashCode => Object.hash(runtimeType,userId,name,iconUrl,metAt,eventName,techStack);
 
 @override
 String toString() {
-  return 'RecentEncounter(userId: $userId, name: $name, iconUrl: $iconUrl, metAt: $metAt, eventName: $eventName)';
+  return 'RecentEncounter(userId: $userId, name: $name, iconUrl: $iconUrl, metAt: $metAt, eventName: $eventName, techStack: $techStack)';
 }
 
 
@@ -255,7 +261,7 @@ abstract mixin class _$RecentEncounterCopyWith<$Res> implements $RecentEncounter
   factory _$RecentEncounterCopyWith(_RecentEncounter value, $Res Function(_RecentEncounter) _then) = __$RecentEncounterCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'user_id') String userId, String name,@JsonKey(name: 'icon_url') String iconUrl,@JsonKey(name: 'met_at') DateTime metAt,@JsonKey(name: 'event_name') String eventName
+@JsonKey(name: 'user_id') String userId, String name,@JsonKey(name: 'icon_url') String iconUrl,@JsonKey(name: 'met_at') DateTime metAt,@JsonKey(name: 'event_name') String eventName,@JsonKey(name: 'tech_stack') String techStack
 });
 
 
@@ -272,13 +278,14 @@ class __$RecentEncounterCopyWithImpl<$Res>
 
 /// Create a copy of RecentEncounter
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userId = null,Object? name = null,Object? iconUrl = null,Object? metAt = null,Object? eventName = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userId = null,Object? name = null,Object? iconUrl = null,Object? metAt = null,Object? eventName = null,Object? techStack = null,}) {
   return _then(_RecentEncounter(
 userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,iconUrl: null == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
 as String,metAt: null == metAt ? _self.metAt : metAt // ignore: cast_nullable_to_non_nullable
 as DateTime,eventName: null == eventName ? _self.eventName : eventName // ignore: cast_nullable_to_non_nullable
+as String,techStack: null == techStack ? _self.techStack : techStack // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

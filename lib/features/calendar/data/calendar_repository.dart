@@ -222,6 +222,8 @@ class CalendarRepository {
                     (raw['icon_url'] ?? raw['iconUrl'])?.toString() ?? '',
                 'comment':
                     (raw['one_word'] ?? raw['comment'])?.toString() ?? '',
+                'techStack':
+                    (raw['tech_stack'] ?? raw['techStack'])?.toString() ?? '',
               },
             )
             .where((user) => user['id']!.isNotEmpty)

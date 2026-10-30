@@ -16,7 +16,12 @@ import 'package:passly/core/constants/passly_tokens.dart';
 ///
 /// すれ違い結果画面 / プロフィール画面などで再利用する。
 class InfoBadgeCard extends StatelessWidget {
-  final String iconAsset;
+  /// [PasslyIcons] のアセット。[icon] を渡したときは使わない。
+  final String? iconAsset;
+
+  /// アセットがないアイコン（例: 話のネタの吹き出し）は Material アイコンで渡す。
+  final IconData? icon;
+
   final String label;
   final String value;
 
@@ -26,11 +31,12 @@ class InfoBadgeCard extends StatelessWidget {
 
   const InfoBadgeCard({
     super.key,
-    required this.iconAsset,
+    this.iconAsset,
+    this.icon,
     required this.label,
     required this.value,
     this.valueColor = AppColors.textPrimary,
-  });
+  }) : assert(iconAsset != null || icon != null);
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +50,7 @@ class InfoBadgeCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
       child: Row(
         children: [
-          _IconBadge(iconAsset: iconAsset),
+          InfoBadgeIcon(iconAsset: iconAsset, icon: icon),
           const SizedBox(width: 24),
           Expanded(
             child: Column(
@@ -83,10 +89,12 @@ class InfoBadgeCard extends StatelessWidget {
   }
 }
 
-class _IconBadge extends StatelessWidget {
-  final String iconAsset;
+/// 情報カード左端の白い正方形アイコンバッジ。
+class InfoBadgeIcon extends StatelessWidget {
+  final String? iconAsset;
+  final IconData? icon;
 
-  const _IconBadge({required this.iconAsset});
+  const InfoBadgeIcon({super.key, this.iconAsset, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -106,11 +114,13 @@ class _IconBadge extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: PasslyIcon(
-        asset: iconAsset,
-        size: 24,
-        color: AppColors.textPrimary,
-      ),
+      child: icon != null
+          ? Icon(icon, size: 24, color: AppColors.textPrimary)
+          : PasslyIcon(
+              asset: iconAsset!,
+              size: 24,
+              color: AppColors.textPrimary,
+            ),
     );
   }
 }

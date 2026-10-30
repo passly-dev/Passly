@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:passly/common/widgets/passly_header.dart';
 import 'package:passly/core/constants/app_colors.dart';
-import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
-import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/features/calendar/domain/calendar_notifier.dart';
 import 'package:passly/features/calendar/presentation/widgets/avatar_group_section.dart';
 import 'package:passly/features/calendar/presentation/widgets/day_event_card.dart';
@@ -19,7 +17,6 @@ import 'package:passly/core/utils/app_time.dart';
 /// - 週の日付ピル（7 日）
 /// - その日のイベントカード → /events/:id
 /// - 「この日に出会った人」 → /encounters/day/:date
-/// - 「親しい友達」 → /close-friends
 class WeekCalendarScreen extends ConsumerStatefulWidget {
   const WeekCalendarScreen({super.key});
 
@@ -83,7 +80,6 @@ class _WeekCalendarScreenState extends ConsumerState<WeekCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final calendarState = ref.watch(calendarNotifierProvider);
-    final closeFriendsAsync = ref.watch(closeFriendListProvider);
 
     final dayData = _findDayData(calendarState.encounterDays, _selectedDate);
 
@@ -117,7 +113,6 @@ class _WeekCalendarScreenState extends ConsumerState<WeekCalendarScreen> {
                     selectedDate: _selectedDate,
                     dayData: dayData,
                   ),
-                  _CloseFriendSection(closeFriendsAsync: closeFriendsAsync),
                 ],
               ),
             ),
@@ -220,25 +215,96 @@ class _NavChevronButton extends StatelessWidget {
 
 /// 選択日を含む週の 7 日を横並びで表示。
 /// 週の起点は月曜（DateTime.weekday の 1）。
-class _WeekStrip extends StatelessWidget {
+///
+/// 横にスワイプすると前後の週へ移動し、選択日は同じ曜日のまま 7 日ずれる。
+/// 月ナビや検索で選択日が別の週へ飛んだときは、その週のページへ移る。
+class _WeekStrip extends StatefulWidget {
   final DateTime selectedDate;
   final void Function(DateTime date) onSelect;
 
   const _WeekStrip({required this.selectedDate, required this.onSelect});
 
   @override
+  State<_WeekStrip> createState() => _WeekStripState();
+}
+
+class _WeekStripState extends State<_WeekStrip> {
+  /// 前後どちらにも十分スワイプできるよう、真ん中あたりのページから始める。
+  static const int _basePage = 10000;
+
+  late final DateTime _baseWeekStart;
+  late final PageController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _baseWeekStart = _startOfWeek(widget.selectedDate);
+    _controller = PageController(initialPage: _basePage);
+  }
+
+  @override
+  void didUpdateWidget(covariant _WeekStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final target = _pageOf(widget.selectedDate);
+    if (_controller.hasClients && _controller.page?.round() != target) {
+      _controller.jumpToPage(target);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  DateTime _weekStartOf(int page) => DateTime(
+    _baseWeekStart.year,
+    _baseWeekStart.month,
+    _baseWeekStart.day + (page - _basePage) * 7,
+  );
+
+  int _pageOf(DateTime date) {
+    final days = _startOfWeek(date).difference(_baseWeekStart).inHours / 24;
+    return _basePage + (days / 7).round();
+  }
+
+  void _onPageChanged(int page) {
+    final weekStart = _weekStartOf(page);
+    final offset = widget.selectedDate.weekday - DateTime.monday;
+    final date = DateTime(
+      weekStart.year,
+      weekStart.month,
+      weekStart.day + offset,
+    );
+    if (!_isSameDay(date, widget.selectedDate)) widget.onSelect(date);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final weekStart = _startOfWeek(selectedDate);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(7, (index) {
-        final date = weekStart.add(Duration(days: index));
-        return WeekDayPill(
-          date: date,
-          isSelected: _isSameDay(date, selectedDate),
-          onTap: () => onSelect(date),
-        );
-      }),
+    return SizedBox(
+      height: 76,
+      child: PageView.builder(
+        controller: _controller,
+        onPageChanged: _onPageChanged,
+        itemBuilder: (context, page) {
+          final weekStart = _weekStartOf(page);
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(7, (index) {
+              final date = DateTime(
+                weekStart.year,
+                weekStart.month,
+                weekStart.day + index,
+              );
+              return WeekDayPill(
+                date: date,
+                isSelected: _isSameDay(date, widget.selectedDate),
+                onTap: () => widget.onSelect(date),
+              );
+            }),
+          );
+        },
+      ),
     );
   }
 
@@ -355,28 +421,6 @@ class _EncounterSection extends StatelessWidget {
             '${selectedDate.year.toString().padLeft(4, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
         context.push('/encounters/day/$dateParam');
       },
-    );
-  }
-}
-
-class _CloseFriendSection extends StatelessWidget {
-  final AsyncValue<List<UserModel>> closeFriendsAsync;
-
-  const _CloseFriendSection({required this.closeFriendsAsync});
-
-  @override
-  Widget build(BuildContext context) {
-    final users = closeFriendsAsync.asData?.value ?? const <UserModel>[];
-    final items = users
-        .map((u) => AvatarItem(userId: u.id, iconUrl: u.iconUrl))
-        .toList();
-
-    return AvatarGroupSection(
-      title: '親しい友達',
-      subtitle: '${users.length}人と出会いました',
-      items: items,
-      totalCount: users.length,
-      onTap: () => context.push('/close-friends'),
     );
   }
 }

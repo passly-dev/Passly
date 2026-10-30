@@ -10,6 +10,12 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository(ref.read(dioProvider));
 });
 
+/// 指定ユーザーのプロフィール（GET /users/:id）。
+/// 相手プロフィール画面と共通タグの計算で同じ結果を使い回す。
+final userByIdProvider = FutureProvider.family<UserModel, String>((ref, id) {
+  return ref.read(userRepositoryProvider).getUser(id);
+});
+
 /// ユーザー情報のAPI通信を担当するリポジトリ
 /// バックエンドの GET /users/:id に合わせた実装
 class UserRepository {
