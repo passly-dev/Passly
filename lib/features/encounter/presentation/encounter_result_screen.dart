@@ -95,104 +95,67 @@ class _EncounterCardStackState extends State<_EncounterCardStack> {
       return const SizedBox.shrink();
     }
 
+    final encounter = widget.encounters[_currentIndex];
+    final total = widget.encounters.length;
+    final isLast = _currentIndex == total - 1;
+    // 今の人を除いた残りの人数
+    final remaining = total - _currentIndex - 1;
+
+    // Figma node 1943:1308「スキップ 決定案：C＋進み具合の点」準拠。
+    // スキップは下のリンクだと話のネタが埋もれるので、旧案 A（node 1942:1281）の
+    // 右上の「すべてスキップ」にしている。
     return Consumer(
       builder: (context, ref, child) {
         return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Text(
-                '${_currentIndex + 1} / ${widget.encounters.length}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Stack(
-                  children: [
-                    for (
-                      int i = widget.encounters.length - 1;
-                      i >= _currentIndex;
-                      i--
-                    )
-                      _buildCard(i, ref),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // TODO: このスキップボタンは仮置きのため、正式なUIが決まり次第修正する
-              TextButton(
-                onPressed: () => _close(ref),
-                child: const Text(
-                  'スキップ',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCard(int index, WidgetRef ref) {
-    final encounter = widget.encounters[index];
-    final isTop = index == _currentIndex;
-    final offset = (index - _currentIndex) * 8.0;
-
-    return Positioned(
-      top: offset,
-      left: offset,
-      right: offset,
-      bottom: 0,
-      child: IgnorePointer(
-        ignoring: !isTop,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 24),
+          padding: const EdgeInsets.fromLTRB(15, 0, 15, 25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _HeroSection(
-                myIconUrl: widget.me?.iconUrl ?? '',
-                encounter: encounter,
+              SizedBox(
+                height: 32,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: remaining >= 2
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 1),
+                          child: _SkipAllButton(onTap: () => _close(ref)),
+                        )
+                      : null,
+                ),
               ),
-              const SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
-                  child: _InfoCards(
-                    myTechStack: widget.me?.techStack ?? '',
-                    encounter: encounter,
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _HeroSection(
+                        myIconUrl: widget.me?.iconUrl ?? '',
+                        encounter: encounter,
+                        current: _currentIndex,
+                        total: total,
+                      ),
+                      const SizedBox(height: 38),
+                      _InfoCards(
+                        myTechStack: widget.me?.techStack ?? '',
+                        encounter: encounter,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               _ActionButtons(
                 targetUserId: encounter.encounteredUser.id,
-                isLast: index == widget.encounters.length - 1,
+                isLast: isLast,
+                nextLabel: '次の人へ　${_currentIndex + 2} / $total',
                 onNext: _nextCard,
                 onClose: () => _close(ref),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -203,7 +166,16 @@ class _HeroSection extends StatelessWidget {
   final String myIconUrl;
   final EncounterModel encounter;
 
-  const _HeroSection({required this.myIconUrl, required this.encounter});
+  /// 何人目か（0 始まり）と全人数。2 人以上のときだけ進み具合の点を出す。
+  final int current;
+  final int total;
+
+  const _HeroSection({
+    required this.myIconUrl,
+    required this.encounter,
+    required this.current,
+    required this.total,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -217,9 +189,15 @@ class _HeroSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const _TitleSection(),
-              const SizedBox(height: 20),
+              // タイトルとアイコンの間は 47。2 人以上なら間に進み具合の点を置く。
+              if (total >= 2) ...[
+                const SizedBox(height: 30),
+                _ProgressDots(current: current, total: total),
+                const SizedBox(height: 11),
+              ] else
+                const SizedBox(height: 47),
               _AvatarPair(myIconUrl: myIconUrl, encounter: encounter),
-              const SizedBox(height: 20),
+              const SizedBox(height: 47),
               _EncounteredName(name: encounter.encounteredUser.name),
             ],
           ),
@@ -310,6 +288,35 @@ class _DecoPill extends StatelessWidget {
   }
 }
 
+/// 進み具合の点。今の人は横長の緑、ほかは灰色の丸。
+class _ProgressDots extends StatelessWidget {
+  final int current;
+  final int total;
+
+  const _ProgressDots({required this.current, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < total; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: i == current ? 18 : 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: i == current ? PasslyBrand.primary : PasslyText.disabled,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _TitleSection extends StatelessWidget {
   const _TitleSection();
 
@@ -383,7 +390,6 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.backgroundWhite,
-        border: Border.all(color: AppColors.backgroundWhite, width: 4),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.25),
@@ -463,7 +469,11 @@ class _InfoCards extends StatelessWidget {
           const SizedBox(height: 12),
         ],
         if (commonTags.isNotEmpty) ...[
-          _CommonTagCard(tags: commonTags),
+          // 人を切り替えたら畳んだ状態に戻すため、相手ごとに作り直す
+          _CommonTagCard(
+            key: ValueKey(encounter.encounteredUser.id),
+            tags: commonTags,
+          ),
           const SizedBox(height: 12),
           InfoBadgeCard(
             icon: Icons.chat_bubble_outline_rounded,
@@ -478,13 +488,29 @@ class _InfoCards extends StatelessWidget {
 
 /// 共通タグのカード。タグが増えても見出しは 1 行のまま，
 /// チップだけカードの中で折り返し，カードの高さが伸びる。
-class _CommonTagCard extends StatelessWidget {
+/// 共通タグのカード（Figma node 1950:1612「B案」）。
+///
+/// タグが多いと下の「話のネタ」がボタンに埋もれるので、最初の
+/// [_maxVisible] 個だけ出し、残りは「+N」にまとめる。「+N」を押すと全部出す。
+class _CommonTagCard extends StatefulWidget {
   final List<String> tags;
 
-  const _CommonTagCard({required this.tags});
+  const _CommonTagCard({super.key, required this.tags});
+
+  @override
+  State<_CommonTagCard> createState() => _CommonTagCardState();
+}
+
+class _CommonTagCardState extends State<_CommonTagCard> {
+  static const int _maxVisible = 3;
+
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
+    final tags = widget.tags;
+    final collapsed = !_expanded && tags.length > _maxVisible;
+    final visible = collapsed ? tags.take(_maxVisible) : tags;
     return Container(
       constraints: const BoxConstraints(minHeight: 72),
       decoration: BoxDecoration(
@@ -511,7 +537,22 @@ class _CommonTagCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                CommonTagWrap(tags: tags),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    for (final t in visible) CommonTagChip.solid(t),
+                    if (collapsed)
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _expanded = true),
+                        child: CommonTagChip.more(
+                          '+${tags.length - _maxVisible}',
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -521,15 +562,56 @@ class _CommonTagCard extends StatelessWidget {
   }
 }
 
+/// 右上の「すべてスキップ」。押すと残りを飛ばしてホームへ戻る。
+class _SkipAllButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SkipAllButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PasslyBg.surface,
+      shape: const StadiumBorder(
+        side: BorderSide(color: PasslyBorder.defaultBorder),
+      ),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: const SizedBox(
+          height: 32,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 14),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                'すべてスキップ',
+                style: TextStyle(
+                  fontFamily: PasslyFont.family,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: PasslyText.secondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ActionButtons extends StatelessWidget {
   final String targetUserId;
   final bool isLast;
+  final String nextLabel;
   final VoidCallback onNext;
   final Future<void> Function() onClose;
 
   const _ActionButtons({
     required this.targetUserId,
     required this.isLast,
+    required this.nextLabel,
     required this.onNext,
     required this.onClose,
   });
@@ -555,8 +637,9 @@ class _ActionButtons extends StatelessWidget {
         const SizedBox(height: 9),
         _PillButton(
           backgroundColor: PasslyBg.surface,
-          textColor: PasslyText.secondary,
-          label: isLast ? '閉じる' : '次へ',
+          textColor: isLast ? PasslyText.secondary : PasslyText.primary,
+          label: isLast ? 'ホームへ' : nextLabel,
+          fontSize: isLast ? 20 : 16,
           onTap: () async {
             if (isLast) {
               await onClose();
@@ -576,6 +659,7 @@ class _PillButton extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
   final BoxShadow? shadow;
+  final double fontSize;
 
   const _PillButton({
     required this.backgroundColor,
@@ -583,6 +667,7 @@ class _PillButton extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.shadow,
+    this.fontSize = 20,
   });
 
   @override
@@ -605,7 +690,7 @@ class _PillButton extends StatelessWidget {
             style: TextStyle(
               fontFamily: PasslyFont.family,
               color: textColor,
-              fontSize: 20,
+              fontSize: fontSize,
               fontWeight: FontWeight.w700,
               height: 16.8 / 20,
             ),

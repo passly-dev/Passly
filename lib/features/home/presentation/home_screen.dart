@@ -7,10 +7,14 @@ import 'package:passly/common/widgets/common_tag_person_card.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:passly/common/widgets/passly_header.dart';
 import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/demo/demo_api.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
 import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
-import 'package:passly/features/home/presentation/widgets/power_mode_toggle.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/home/presentation/widgets/pocket_mode_button.dart';
 import 'package:passly/core/utils/app_time.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
 
@@ -19,15 +23,27 @@ import 'package:passly/features/user/domain/common_tags.dart';
 /// 今日すれ違った人のうち，共通タグのある人だけを出す。
 /// いちばん共通点が多い人を大きいカードで上に置き，残りは一覧にする。
 /// 話しかける勇気がない人でも，共通点がある人なら最初の一言をかけやすいため。
-/// 右上には擬似フォアグラウンド ON/OFF を切り替える [PowerModeToggle] を配置。
+/// 右上は自分のアイコン（マイページへ）。ポケットモードの切り替えは iOS だけ、
+/// [MainScreen] がナビの上に [PocketModeButton] として出す。
 ///
 /// ボトムナビは [MainScreen] 側で `PasslyBottomNav` として全タブ共通で描画する。
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  /// デモ用。すれ違ったことにして、すれ違い画面を開く。
+  Future<void> _showDemoEncounter(BuildContext context, WidgetRef ref) async {
+    DemoApi.instance.startEncounter();
+    ref.invalidate(encounterNotifierProvider);
+    await ref.read(encounterNotifierProvider.future);
+    if (context.mounted) context.go('/encounter-result');
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeNotifierProvider);
+    final myIconUrl = ref.watch(
+      authNotifierProvider.select((s) => s.value?.iconUrl),
+    );
 
     return Scaffold(
       backgroundColor: PasslyBg.defaultBg,
@@ -35,10 +51,15 @@ class HomeScreen extends ConsumerWidget {
       // これでヘッダーの白背景がステータスバー / Dynamic Island 領域まで届く。
       body: Column(
         children: [
-          const PasslyHeader(
-            title: 'おかえり！',
-            subtitle: '今日の出会いを見てみよう',
-            trailing: [PowerModeToggle()],
+          GestureDetector(
+            // デモモードのときだけ、ヘッダー長押しですれ違い画面を出す
+            onLongPress: FeatureFlags.demoMode
+                ? () => _showDemoEncounter(context, ref)
+                : null,
+            child: PasslyHeader.home(
+              avatarUrl: (myIconUrl?.isEmpty ?? true) ? null : myIconUrl,
+              onAvatarTap: () => context.go('/mypage'),
+            ),
           ),
           Expanded(
             child: homeState.when(
@@ -74,7 +95,8 @@ class HomeScreen extends ConsumerWidget {
           left: PasslySpace.s16,
           right: PasslySpace.s16,
           top: PasslySpace.s24,
-          bottom: 120,
+          // ナビとその上のポケットモードボタンに最後のカードが隠れないようにする
+          bottom: 180,
         ),
         children: isLoading
             ? const [LoadingCardsSkeleton()]
@@ -234,7 +256,7 @@ class _EmptyMessage extends StatelessWidget {
 
 /// いちばん共通点が多い人のカード。
 ///
-/// アイコン + 名前 + 「◯◯ですれ違いました」，同じタグ（全部・折り返し），
+/// アイコン + 名前 + 「◯◯ですれ違いました」，共通タグ（全部・折り返し），
 /// 「プロフィールを見る」ボタン。
 class _FeaturedCard extends StatelessWidget {
   final RecentEncounter encounter;
@@ -313,7 +335,7 @@ class _FeaturedCard extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 3, right: 6),
                 child: Text(
-                  '同じタグ',
+                  '共通タグ',
                   style: TextStyle(
                     fontFamily: PasslyFont.family,
                     color: PasslyBrand.primaryDark,

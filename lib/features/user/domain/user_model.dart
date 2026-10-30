@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:passly/features/user/domain/last_encounter.dart';
+import 'package:passly/features/user/domain/next_event.dart';
 import 'package:passly/features/user/domain/user_role.dart';
 
 part 'user_model.freezed.dart';
@@ -58,6 +59,9 @@ abstract class UserModel with _$UserModel {
 
     /// この相手と最後にすれ違った時の情報（バックエンド: last_encounter）
     LastEncounter? lastEncounter,
+
+    /// この人が次に参加するイベント（バックエンド: next_event）
+    NextEvent? nextEvent,
 
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -124,6 +128,7 @@ abstract class UserModel with _$UserModel {
       about: _readString(json, 'about'),
       isCloseFriend: json['is_close_friend'] as bool? ?? false,
       lastEncounter: parseLastEncounter(json['last_encounter']),
+      nextEvent: NextEvent.tryParse(json['next_event']),
       createdAt: parseDateTime(json['created_at']),
       updatedAt: parseDateTime(json['updated_at']),
     );

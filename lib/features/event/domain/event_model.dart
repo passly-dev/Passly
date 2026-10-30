@@ -34,6 +34,9 @@ abstract class EventModel with _$EventModel {
     @JsonKey(name: 'end_at') DateTime? endAt,
     @Default('') String location,
     @JsonKey(name: 'event_url') @Default('') String eventUrl,
+
+    /// イベントのメイン画像（バックエンド: image_url）。なければ空文字。
+    @JsonKey(name: 'image_url') @Default('') String imageUrl,
     @Default('') String description,
     @Default(0) int accepted,
     @Default(0) int waiting,

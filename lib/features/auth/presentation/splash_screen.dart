@@ -70,6 +70,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   /// 認証状態をポーリングでチェックし、ログインまたは結果待ちへと遷移する
   void _checkAuthState() {
+    if (!mounted) return;
     final authState = ref.read(authNotifierProvider);
     authState.when(
       data: (user) {
@@ -97,6 +98,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   /// 未確認のすれ違いデータをチェックし、結果画面またはホームへ遷移する
   /// APIが未実装やエラーの場合は安全にホーム画面へフォールバック
   void _checkPendingEncounters() {
+    if (!mounted) return;
     try {
       final encounterState = ref.read(encounterNotifierProvider);
       encounterState.when(

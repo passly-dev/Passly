@@ -85,7 +85,7 @@ abstract final class PasslyNavItems {
   );
   static const calendar = PasslyNavItem(
     iconAsset: 'assets/images/nav/calendar.svg',
-    label: 'カレンダー',
+    label: 'イベント',
   );
   static const myPage = PasslyNavItem(
     iconAsset: 'assets/images/nav/my_page.svg',

@@ -23,12 +23,22 @@ class WeekDayPill extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
+  /// 右上の目印の色。null なら出さない（イベントがない日）。
+  final Color? badgeColor;
+
   const WeekDayPill({
     super.key,
     required this.date,
     required this.isSelected,
     required this.onTap,
+    this.badgeColor,
   });
+
+  /// 参加したイベントの日（今日まで）の目印。
+  static const Color pastEventBadge = PasslyBrand.primary;
+
+  /// これからのイベントの日の目印。
+  static const Color upcomingEventBadge = Color(0xFFF59E0A);
 
   static const double _pillWidth = 46;
   static const double _pillHeight = 76;
@@ -49,7 +59,7 @@ class WeekDayPill extends StatelessWidget {
         : PasslyBorder.strong;
     final textColor = isSelected ? PasslyText.onBrand : PasslyText.tertiary;
 
-    return GestureDetector(
+    final pill = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: PressFeedback(
@@ -112,6 +122,32 @@ class WeekDayPill extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    final badge = badgeColor;
+    if (badge == null) return pill;
+    // Figma node 1953:1697「目印案C」: 右上に少しはみ出す直径 14 の丸（白い縁 2）。
+    // はみ出した部分は表示だけで、タップはピル本体で受ける。
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        pill,
+        Positioned(
+          top: -4,
+          right: -3,
+          child: IgnorePointer(
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: badge,
+                shape: BoxShape.circle,
+                border: Border.all(color: PasslyBg.surface, width: 2),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
