@@ -1,7 +1,7 @@
 /// デモ動画用のイベント。
 ///
 /// えいでんが connpass（https://connpass.com/user/akitsugu/）で参加した
-/// イベントを各イベントページで調べて写したもの。
+/// 開催済みイベントのうち新しい 10 件を、各イベントページで調べて写したもの。
 /// 日時は UTC、参加人数・定員は connpass の一覧表示に合わせている。
 /// 「Matsuriba Vol.15 ※再募集」は Vol.15 と同じ会なので 1 件にまとめた。
 class DemoEvent {
@@ -36,81 +36,6 @@ class DemoEvent {
 }
 
 final List<DemoEvent> demoEvents = [
-  DemoEvent(
-    id: 374741,
-    name: 'Matsuriba Vol.12',
-    group: 'NxTEND',
-    startAt: DateTime.utc(2025, 12, 4, 10),
-    endAt: DateTime.utc(2025, 12, 4, 12, 30),
-    place: '伊藤忠テクノソリューションズ 名古屋オフィス',
-    address: '愛知県名古屋市中区栄4-1-1 中日ビル',
-    url: 'https://nxtend.connpass.com/event/374741/',
-    accepted: 41,
-    limit: 80,
-    description:
-        '東海地方最大の学生エンジニアコミュニティ MatsuribaTech の定期交流会。'
-        '加盟 11 団体と東海の学生エンジニアが集まり、LT と懇親会で交流します。',
-  ),
-  DemoEvent(
-    id: 379505,
-    name: '29Tech vol.1',
-    group: 'NxTEND',
-    startAt: DateTime.utc(2026, 1, 30, 10),
-    endAt: DateTime.utc(2026, 1, 30, 12),
-    place: '名古屋工業大学 18号館3階 NaSHシェアスペース',
-    address: '愛知県名古屋市昭和区御器所町',
-    url: 'https://nxtend.connpass.com/event/379505/',
-    accepted: 24,
-    limit: 25,
-    description:
-        '東海地方の 29 卒学生エンジニアがつながるコミュニティ 29Tech の第 1 回。'
-        '同世代で学習や開発の話を共有する交流会です。',
-  ),
-  DemoEvent(
-    id: 379341,
-    name: '28卒,29卒学生あつまれ！『ニックトレイン』NAGOYA',
-    group: 'TechTrain',
-    startAt: DateTime.utc(2026, 2, 11, 7, 30),
-    endAt: DateTime.utc(2026, 2, 11, 10),
-    place: 'ディップ株式会社 名古屋オフィス',
-    address: '愛知県名古屋市中区栄4-1-1 中日ビル 20階',
-    url: 'https://techtrain.connpass.com/event/379341/',
-    accepted: 29,
-    limit: 34,
-    description:
-        '「2月から9月（ニク）」の過ごし方を考える 28・29 卒向けイベント。'
-        '肉を食べながら仲間づくりとキャリアの作戦会議をします。',
-  ),
-  DemoEvent(
-    id: 373212,
-    name: 'MatsuribaMAX 2026',
-    group: 'NxTEND',
-    startAt: DateTime.utc(2026, 3, 8, 1),
-    endAt: DateTime.utc(2026, 3, 8, 12),
-    place: '名古屋市中小企業振興会館 第2ファッション展示場',
-    address: '愛知県名古屋市千種区吹上2丁目6-3',
-    url: 'https://nxtend.connpass.com/event/373212/',
-    accepted: 113,
-    limit: 182,
-    description:
-        '技術と想いが集う、熱量 MAX な祭り。MatsuribaTech 加盟団体が 1 年間の'
-        '取り組みをセッションとブース展示で披露する、東海最大の学生エンジニア向けカンファレンス。',
-  ),
-  DemoEvent(
-    id: 372782,
-    name: 'SysHack 2026',
-    group: 'システム工学研究会',
-    startAt: DateTime.utc(2026, 3, 31, 1),
-    endAt: DateTime.utc(2026, 3, 31, 11),
-    place: '愛知工業大学 八草キャンパス',
-    address: '愛知県豊田市八草町八千草1247',
-    url: 'https://sysken.connpass.com/event/372782/',
-    accepted: 99,
-    limit: 105,
-    description:
-        '愛知工業大学システム工学研究会が主催する、学生エンジニアのための初心者歓迎ハッカソン。'
-        '最初の一歩を踏み出す挑戦の場です。',
-  ),
   DemoEvent(
     id: 390965,
     name: '【非公式】技育祭東海 後夜祭',
@@ -261,34 +186,28 @@ final List<DemoEvent> demoEvents = [
         '東海地区最大のエンジニアの夏祭り。技術への情熱を持つ学生 IT エンジニアが'
         '「祭り」という非日常の空間で交流を深めます。',
   ),
-  DemoEvent(
-    id: 408951,
-    name: 'MEET STAGE in 名古屋 vol.1',
-    group: 'LOCAL STAGE Project',
-    startAt: DateTime.utc(2026, 11, 8, 4),
-    endAt: DateTime.utc(2026, 11, 8, 8, 30),
-    place: 'ディップ株式会社',
-    address: '愛知県名古屋市中区栄4-1-1 中日ビル 20階',
-    url: 'https://localstage.connpass.com/event/408951/',
-    accepted: 13,
-    limit: 40,
-    description:
-        '関西・東京で満員御礼だったエンジニアゆる交流会が名古屋で初開催。'
-        '東海エリアの学生エンジニアが集まる LT ＆交流会です。',
-  ),
-  DemoEvent(
-    id: 407711,
-    name: '2026 システム工学研究会 OBOG会',
-    group: 'システム工学研究会',
-    startAt: DateTime.utc(2026, 11, 29, 5),
-    endAt: DateTime.utc(2026, 11, 29, 10, 30),
-    place: '愛知工業大学 八草キャンパス 1号館1階',
-    address: '愛知県豊田市八草町八千草1247',
-    url: 'https://sysken.connpass.com/event/407711/',
-    accepted: 20,
-    limit: 60,
-    description:
-        'システム工学研究会の現役部員と OBOG が集まる会。'
-        'LT 会や部室での交流で、世代を超えてつながります。',
-  ),
 ];
+
+/// 「今日」すれ違ったことにする架空のイベント。日付は起動した日になる。
+DemoEvent demoTodayEvent(DateTime todayLocal) {
+  // 13:00〜17:00（日本時間）
+  final start = DateTime.utc(
+    todayLocal.year,
+    todayLocal.month,
+    todayLocal.day,
+    4,
+  );
+  return DemoEvent(
+    id: 1,
+    name: 'Passly 体験会',
+    group: 'システム工学研究会',
+    startAt: start,
+    endAt: start.add(const Duration(hours: 4)),
+    place: '中日ビル',
+    address: '愛知県名古屋市中区栄4-1-1',
+    url: '',
+    accepted: 24,
+    limit: 40,
+    description: 'すれ違い通信アプリ Passly を実際に持ち歩いて、近くの参加者とのすれ違いを体験する会です。',
+  );
+}

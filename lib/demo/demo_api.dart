@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'package:passly/core/utils/app_time.dart';
+import 'package:passly/demo/demo_avatar_server.dart';
 import 'package:passly/demo/demo_events.dart';
 import 'package:passly/demo/demo_people.dart';
 
@@ -30,15 +31,23 @@ class DemoApiInterceptor extends Interceptor {
 
 /// デモ用のダミーデータと、アプリ起動中だけ保つ状態（お気に入り・未確認のすれ違いなど）。
 class DemoApi {
-  DemoApi._();
+  /// アプリを開くたびに、まずすれ違い画面から始まるようにしておく。
+  DemoApi._() {
+    startEncounter();
+  }
 
   static final DemoApi instance = DemoApi._();
 
   final Set<String> _favoriteIds = {...demoInitialFavoriteIds};
+  final DemoEvent _todayEvent = demoTodayEvent(AppTime.nowLocal());
+  late final List<DemoEvent> _events = [...demoEvents, _todayEvent];
   final Map<String, dynamic> _meOverrides = {};
 
-  /// すれ違い画面に出す相手（未確認）。[startEncounter] で入る。
+  /// すれ違い画面に出す相手（未確認）。起動時と [startEncounter] で入る。
   List<String> _pendingIds = const [];
+
+  /// まだ確認していないすれ違いがあるか。
+  bool get hasPendingEncounter => _pendingIds.isNotEmpty;
 
   /// すれ違い画面に出す相手を用意する。共通タグが多い人から並べる。
   void startEncounter() {
@@ -63,7 +72,7 @@ class DemoApi {
       case ['signup']:
         return <String, dynamic>{};
       case ['events'] when method == 'GET':
-        return [for (final e in demoEvents) _eventJson(e)];
+        return [for (final e in _events) _eventJson(e)];
       case ['events', final id] when method == 'GET':
         final event = _event(int.tryParse(id));
         return event == null ? null : _eventDetailJson(event);
@@ -146,12 +155,11 @@ class DemoApi {
       local.month,
       local.day,
     ).subtract(AppTime.timeZoneOffset);
-    final todayEvent = _event(demoTodayEventId)!;
     for (var i = 0; i < demoTodayPeople.length; i++) {
       var metAt = now.subtract(Duration(minutes: 5 + i * 15));
       if (metAt.isBefore(startOfToday)) metAt = startOfToday;
       records.add(
-        _Record(personId: demoTodayPeople[i], event: todayEvent, metAt: metAt),
+        _Record(personId: demoTodayPeople[i], event: _todayEvent, metAt: metAt),
       );
     }
 
@@ -177,7 +185,7 @@ class DemoApi {
         for (final id in _pendingIds)
           {
             ..._shortUserJson(_person(id)!),
-            'event_name': _event(demoTodayEventId)!.name,
+            'event_name': _todayEvent.name,
             'created_at': AppTime.nowUtc().toIso8601String(),
           },
       ],
@@ -187,7 +195,7 @@ class DemoApi {
           {
             'user_id': r.personId,
             'name': _person(r.personId)!.name,
-            'icon_url': '',
+            'icon_url': _icon(r.personId),
             'met_at': r.metAt.toIso8601String(),
             'event_name': r.event.name,
             'tech_stack': _person(r.personId)!.techStack,
@@ -200,7 +208,7 @@ class DemoApi {
     final records = _records.where((r) => _dateKey(r.metAt) == date).toList();
     final event = records.isNotEmpty
         ? records.first.event
-        : demoEvents.where((e) => _dateKey(e.startAt) == date).firstOrNull;
+        : _events.where((e) => _dateKey(e.startAt) == date).firstOrNull;
     return {
       'encounter_count': records.length,
       'event': event?.name,
@@ -232,7 +240,7 @@ class DemoApi {
         {
           'user_id': r.personId,
           'name': _person(r.personId)!.name,
-          'icon_url': '',
+          'icon_url': _icon(r.personId),
           'one_word': _person(r.personId)!.oneWord,
           'registered_at': e.startAt
               .subtract(const Duration(days: 7))
@@ -244,7 +252,7 @@ class DemoApi {
   Map<String, dynamic> _shortUserJson(DemoPerson p) => {
     'id': p.id,
     'name': p.name,
-    'icon_url': '',
+    'icon_url': _icon(p.id),
     'one_word': p.oneWord,
     'tech_stack': p.techStack,
   };
@@ -254,7 +262,7 @@ class DemoApi {
     return {
       'id': p.id,
       'name': p.name,
-      'icon_url': '',
+      'icon_url': _icon(p.id),
       'one_word': p.oneWord,
       'role': p.role,
       'tech_stack': p.techStack,
@@ -324,8 +332,15 @@ class DemoApi {
   static DemoPerson? _person(String id) =>
       demoPeople.where((p) => p.id == id).firstOrNull;
 
-  static DemoEvent? _event(int? id) =>
-      demoEvents.where((e) => e.id == id).firstOrNull;
+  DemoEvent? _event(int? id) => _events.where((e) => e.id == id).firstOrNull;
+
+  /// 頭文字のアイコン。色は人ごとに変える（自分は 0 番）。
+  static String _icon(String id) {
+    if (id == demoMeId) return DemoAvatarServer.urlFor(demoMe.name, 0);
+    final index = demoPeople.indexWhere((p) => p.id == id);
+    if (index < 0) return '';
+    return DemoAvatarServer.urlFor(demoPeople[index].name, index + 1);
+  }
 }
 
 class _Record {

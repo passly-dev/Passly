@@ -228,20 +228,6 @@ const List<String> demoInitialFavoriteIds = ['demo_02', 'demo_07'];
 /// 各イベントですれ違った人（イベント ID → 人物 ID）。
 /// 開催前のイベントはここに入れない。
 const Map<int, List<String>> demoEncountersByEvent = {
-  374741: ['demo_01', 'demo_03', 'demo_07', 'demo_11'],
-  379505: ['demo_14', 'demo_04', 'demo_15'],
-  379341: ['demo_16', 'demo_06', 'demo_13', 'demo_17', 'demo_08'],
-  373212: [
-    'demo_01',
-    'demo_02',
-    'demo_05',
-    'demo_07',
-    'demo_09',
-    'demo_12',
-    'demo_18',
-    'demo_10',
-  ],
-  372782: ['demo_07', 'demo_03', 'demo_14', 'demo_11', 'demo_15', 'demo_06'],
   390965: ['demo_04', 'demo_16', 'demo_08'],
   391293: ['demo_12', 'demo_13', 'demo_05', 'demo_17'],
   396090: ['demo_09', 'demo_11', 'demo_15'],
@@ -262,9 +248,8 @@ const Map<int, List<String>> demoEncountersByEvent = {
   ],
 };
 
-/// 「今日」すれ違ったことにする人と、そのイベント。
+/// 「今日」すれ違ったことにする人（イベントは [demoTodayEvent]）。
 /// demo_01 は自分と共通タグが 5 つ、demo_11 と demo_17 は 0 個。
-const int demoTodayEventId = 408951;
 const List<String> demoTodayPeople = [
   'demo_01',
   'demo_14',

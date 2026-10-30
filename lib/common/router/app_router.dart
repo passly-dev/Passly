@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:passly/core/config/feature_flags.dart';
+import 'package:passly/demo/demo_api.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/auth/presentation/splash_screen.dart';
 import 'package:passly/features/auth/presentation/login_screen.dart';
@@ -54,7 +56,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/';
 
       // ログイン済みで認証ページにいる場合 → ホームへ
-      if (isLoggedIn && isOnAuthPage) return '/home';
+      // （デモモードでは起動直後をすれ違い画面にする）
+      if (isLoggedIn && isOnAuthPage) {
+        return FeatureFlags.demoMode && DemoApi.instance.hasPendingEncounter
+            ? '/encounter-result'
+            : '/home';
+      }
       // 未ログインで認証ページ以外にいる場合 → ログインへ
       if (!isLoggedIn && !isOnAuthPage) return '/login';
 
