@@ -1,18 +1,14 @@
-import 'dart:io' show Platform;
-import 'dart:ui';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 import 'package:passly/common/widgets/press_feedback.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 
-/// Figma node 1300:1627 の「ナビゲーションバー」ComponentSet 4 バリアント
-/// (ホーム / 広場 / カレンダー / マイページ) 準拠のピル型ボトムナビ。
+/// Figma node 1931:5317 の「ナビゲーションバー」(新コンポーネント) 準拠のピル型ボトムナビ。
+/// iOS / Android とも同じ見た目（リキッドグラスやブラーは使わない）。
 ///
-/// - 白背景 / 角丸 118 / ソフトシャドウ / 高さ 64
+/// - 不透明の白背景 / 全丸 / 枠線なし / 高さ 64
+/// - 影 1 つ: #858E85 10% / blur 31.2 / offset (0, 10)
 /// - 4 タブ横並び（アイコン 28 SVG + ラベル 7px SemiBold）
 /// - アクティブ: `PasslyBrand.primaryLight (#6BD168)` に色替え
 /// - 非アクティブ: `PasslyText.secondary (#6B7280)` に色替え
@@ -34,11 +30,6 @@ class PasslyBottomNav extends StatelessWidget {
   static const double _height = 64;
   static const double _radius = 32;
 
-  static bool get _supportsLiquidGlass {
-    if (kIsWeb) return false;
-    return Platform.isIOS;
-  }
-
   @override
   Widget build(BuildContext context) {
     final row = Row(
@@ -53,48 +44,20 @@ class PasslyBottomNav extends StatelessWidget {
       ],
     );
 
-    // iOS: liquid_glass_renderer で本物のリキッドグラス。
-    // Android: SkSL がコンパイルできない / レイヤーが上下反転して描画される
-    // 既知バグを避けるため BackdropFilter + 半透明白のピル型に fallback。
-    if (_supportsLiquidGlass) {
-      return LiquidGlassLayer(
-        settings: const LiquidGlassSettings(
-          thickness: 22,
-          blur: 10,
-          glassColor: Color(0x33FFFFFF),
-          lightIntensity: 1.4,
-        ),
-        child: LiquidGlass(
-          shape: const LiquidRoundedSuperellipse(borderRadius: _radius),
-          child: SizedBox(height: _height, child: row),
-        ),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(_radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          height: _height,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(_radius),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.5),
-              width: 0.6,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF858E85).withValues(alpha: 0.18),
-                blurRadius: 20,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return Container(
+      height: _height,
+      decoration: BoxDecoration(
+        color: PasslyBg.surface,
+        borderRadius: BorderRadius.circular(_radius),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF858E85).withValues(alpha: 0.1),
+            blurRadius: 31.2,
+            offset: const Offset(0, 10),
           ),
-          child: row,
-        ),
+        ],
       ),
+      child: row,
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:passly/common/widgets/passly_glass_circle.dart';
+import 'package:passly/common/widgets/passly_circle_button.dart';
 import 'package:passly/common/widgets/passly_icon.dart';
 import 'package:passly/common/widgets/press_feedback.dart';
 import 'package:passly/core/constants/app_colors.dart';
@@ -240,10 +240,7 @@ class PasslyHeader extends StatelessWidget {
   }
 }
 
-/// Figma のプロフィール系ヘッダーで使う「丸型グレー背景の戻るボタン」。
-///
-/// Figma node 1269:520 では 30x30 だが、他アプリと比べて指で押しづらいので
-/// タップターゲット 40x40 (icon 24px) に拡大して実装している。
+/// プロフィール系ヘッダーの戻るボタン（白い丸 + chevron 23.8）。
 class PasslyBackButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -251,33 +248,15 @@ class PasslyBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return PasslyCircleButton(
+      asset: PasslyIcons.chevron,
+      iconSize: 23.8,
       onTap: onTap,
-      child: PressFeedback(
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: const BoxDecoration(
-            color: PasslyBorder.divider,
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: const PasslyIcon(
-            asset: PasslyIcons.chevron,
-            size: 24,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
     );
   }
 }
 
-/// 検索ヘッダー用の戻るボタン。
-///
-/// Figma は 22.84x22.84 だが、他のヘッダーボタンと同じタップサイズに
-/// 合わせて 40x40 に拡大 (chevron 24)。角丸は half-height。
+/// 検索ヘッダー用の戻るボタン（白い丸 + chevron 23.8）。
 class _SmallBackButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -285,25 +264,10 @@ class _SmallBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return PasslyCircleButton(
+      asset: PasslyIcons.chevron,
+      iconSize: 23.8,
       onTap: onTap,
-      child: PressFeedback(
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: PasslyBorder.divider,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          alignment: Alignment.center,
-          child: const PasslyIcon(
-            asset: PasslyIcons.chevron,
-            size: 24,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
     );
   }
 }
@@ -381,10 +345,7 @@ class _HeaderSearchIcon extends StatelessWidget {
   }
 }
 
-/// 自分プロフィールヘッダーの編集ペンボタン (Figma node 1300:1909)。
-///
-/// Figma は 30x30 / icon 20 だが、他アプリ相当のタップサイズに合わせて
-/// 40x40 / icon 24 に拡大。
+/// 自分プロフィールヘッダーの編集ペンボタン（白い丸 + ペン 24）。
 class _HeaderEditButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -392,32 +353,15 @@ class _HeaderEditButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return PasslyCircleButton(
+      asset: PasslyIcons.edit,
+      iconSize: 24,
       onTap: onTap,
-      child: PressFeedback(
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: PasslyBorder.divider,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          alignment: Alignment.center,
-          child: const PasslyIcon(
-            asset: PasslyIcons.edit,
-            size: 24,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
     );
   }
 }
 
-/// QR 画面ヘッダー左端の閉じるボタン (Figma node 1528:4374)。
-///
-/// 40x40 円形のフロスト風ガラスボタン + 中央に白い X アイコン (24px)。
+/// QR 画面ヘッダー左端の閉じるボタン（白い丸 + X）。
 class _HeaderCloseButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -425,25 +369,15 @@ class _HeaderCloseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return PasslyCircleButton(
+      asset: PasslyIcons.close,
+      iconSize: 20,
       onTap: onTap,
-      child: const PressFeedback(
-        child: PasslyGlassCircle(
-          child: PasslyIcon(
-            asset: PasslyIcons.close,
-            size: 24,
-            color: PasslyText.primary,
-          ),
-        ),
-      ),
     );
   }
 }
 
-/// QR 画面ヘッダー右端の QR スキャン起動ボタン (Figma node 1528:4381)。
-///
-/// 40x40 円形のフロスト風ガラスボタン + 中央 26x26 の mage:qr-code (白)。
+/// QR 画面ヘッダー右端の QR スキャン起動ボタン（白い丸 + QR 20）。
 class _HeaderQrScanButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -451,18 +385,10 @@ class _HeaderQrScanButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return PasslyCircleButton(
+      asset: PasslyIcons.qrCode,
+      iconSize: 20,
       onTap: onTap,
-      child: const PressFeedback(
-        child: PasslyGlassCircle(
-          child: PasslyIcon(
-            asset: PasslyIcons.qrCode,
-            size: 26,
-            color: PasslyText.primary,
-          ),
-        ),
-      ),
     );
   }
 }
