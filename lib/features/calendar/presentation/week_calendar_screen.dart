@@ -345,7 +345,7 @@ class _EventCardSection extends StatelessWidget {
       date: selectedDate,
       location: location,
       participantCount: count,
-      imageUrl: null,
+      imageUrl: dayData?['event_image_url'] as String?,
       onTap: () {
         if (eventId != null) {
           context.push('/events/$eventId');

@@ -75,6 +75,18 @@ class EventDetailScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (event.imageUrl.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.network(
+                event.imageUrl,
+                width: double.infinity,
+                fit: BoxFit.fitWidth,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
           Text(
             event.name,
             style: const TextStyle(
