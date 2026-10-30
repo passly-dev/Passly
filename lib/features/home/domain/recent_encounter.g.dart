@@ -13,6 +13,7 @@ _RecentEncounter _$RecentEncounterFromJson(Map<String, dynamic> json) =>
       iconUrl: json['icon_url'] as String? ?? '',
       metAt: DateTime.parse(json['met_at'] as String),
       eventName: json['event_name'] as String? ?? '',
+      techStack: json['tech_stack'] as String? ?? '',
     );
 
 Map<String, dynamic> _$RecentEncounterToJson(_RecentEncounter instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$RecentEncounterToJson(_RecentEncounter instance) =>
       'icon_url': instance.iconUrl,
       'met_at': instance.metAt.toIso8601String(),
       'event_name': instance.eventName,
+      'tech_stack': instance.techStack,
     };

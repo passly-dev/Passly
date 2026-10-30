@@ -15,6 +15,10 @@ abstract class RecentEncounter with _$RecentEncounter {
     @JsonKey(name: 'icon_url') @Default('') String iconUrl,
     @JsonKey(name: 'met_at') required DateTime metAt,
     @JsonKey(name: 'event_name') @Default('') String eventName,
+
+    /// 相手の技術スタック。サーバーが返さない間は空で、
+    /// 共通タグは GET /users/:id から補う。
+    @JsonKey(name: 'tech_stack') @Default('') String techStack,
   }) = _RecentEncounter;
 
   factory RecentEncounter.fromJson(Map<String, dynamic> json) =>
