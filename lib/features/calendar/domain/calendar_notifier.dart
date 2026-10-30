@@ -100,6 +100,8 @@ class CalendarNotifier extends Notifier<CalendarState> {
             merged['event_url']?.toString() ??
             '';
         merged['event_id'] = merged['event_id'] ?? event['id'];
+        merged['participant_count'] =
+            merged['participant_count'] ?? event['accepted'];
         merged['count'] = merged['count'] ?? 0;
         merged['users'] = merged['users'] ?? const <Map<String, dynamic>>[];
 

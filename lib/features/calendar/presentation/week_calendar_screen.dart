@@ -332,8 +332,8 @@ class _EventCardSection extends StatelessWidget {
     }
 
     final location = (dayData?['event_location'] as String?)?.trim() ?? '';
-    // 参加者数はカレンダー API 側にまだ含まれないため 0 表示。
-    // TODO(passly): カレンダー daily/monthly API が participant_count を返すようになったら埋める
+    // 参加者数は daily API の participant_count か、GET /events の accepted。
+    // どちらもなければ 0 表示。
     final count = (dayData?['participant_count'] as int?) ?? 0;
     final eventIdRaw = dayData?['event_id'];
     final eventId = eventIdRaw is int

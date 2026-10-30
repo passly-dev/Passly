@@ -200,6 +200,7 @@ class CalendarRepository {
       'event_location': data['event_location']?.toString() ?? '',
       'event_url': data['event_url']?.toString() ?? '',
       'event_id': data['event_id'],
+      'participant_count': data['participant_count'],
       'users': users,
     };
   }
