@@ -6,19 +6,22 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:passly/common/widgets/encounter_meta_pill.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
 import 'package:passly/features/user/data/user_repository.dart';
+import 'package:passly/features/user/domain/common_tags.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/core/utils/app_time.dart';
 
-final profileProvider = FutureProvider.family<UserModel, String>((ref, userId) {
-  return ref.read(userRepositoryProvider).getUser(userId);
-});
+final profileProvider = userByIdProvider;
 
-/// 相手プロフィール画面。BLE で出会った相手を「親しい友達」に追加・解除できる。
+/// 相手プロフィール画面。
 ///
-/// レイアウトは Figma node 1237:1385（未追加）/ 1305:2107（親しい友達）に準拠。
-/// 色・タイポは AppColors を通じてプロジェクトのデザイントークンに寄せている。
+/// TECH TAG では自分と同じタグを緑のチェック付きで先頭に出し，
+/// 「話のネタ」と SNS ボタンで次に話しかけるきっかけを作る。
+/// 名前の下のボタンでお気に入りに追加・解除できる
+/// （中身は既存の close-friends API を使う）。
 class ProfileScreen extends ConsumerWidget {
   final String userId;
 
@@ -34,10 +37,9 @@ class ProfileScreen extends ConsumerWidget {
     }
 
     final profileAsync = ref.watch(profileProvider(userId));
-    final closeFriendList = ref.watch(closeFriendListProvider);
-    final isBusy = closeFriendList.isLoading;
-    final isCloseFriend =
-        closeFriendList.asData?.value.any((u) => u.id == userId) ?? false;
+    final myTechStack = ref.watch(
+      authNotifierProvider.select((s) => s.value?.techStack ?? ''),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
@@ -45,8 +47,7 @@ class ProfileScreen extends ConsumerWidget {
         data: (profile) => _ProfileBody(
           userId: userId,
           profile: profile,
-          isCloseFriend: isCloseFriend,
-          isBusy: isBusy,
+          myTechStack: myTechStack,
         ),
         loading: () => const Padding(
           padding: EdgeInsets.all(16),
@@ -67,72 +68,54 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-/// プロフィール本体。スクロール可能な上部と、固定表示のボタン領域を Column で分ける。
+/// プロフィール本体。
 class _ProfileBody extends StatelessWidget {
   final String userId;
   final UserModel profile;
-  final bool isCloseFriend;
-  final bool isBusy;
+  final String myTechStack;
 
   const _ProfileBody({
     required this.userId,
     required this.profile,
-    required this.isCloseFriend,
-    required this.isBusy,
+    required this.myTechStack,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _CoverAndAvatar(profile: profile),
-                const SizedBox(height: 16),
-                _NameSection(profile: profile),
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: _EncounterCard(
-                    profile: profile,
-                    isCloseFriend: isCloseFriend,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 21),
-                  child: _AboutSection(profile: profile),
-                ),
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 21),
-                  child: _TechTagSection(profile: profile),
-                ),
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 21),
-                  child: _LinkSection(profile: profile),
-                ),
-              ],
-            ),
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(
+        bottom: 24 + MediaQuery.of(context).padding.bottom,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _CoverAndAvatar(profile: profile),
+          const SizedBox(height: 16),
+          _NameSection(profile: profile),
+          const SizedBox(height: 12),
+          Center(child: _FavoriteButton(userId: userId)),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: _EncounterCard(profile: profile),
           ),
-        ),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(15, 8, 15, 16),
-            child: _CloseFriendActions(
-              userId: userId,
-              isCloseFriend: isCloseFriend,
-              isBusy: isBusy,
-            ),
+          const SizedBox(height: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 21),
+            child: _AboutSection(profile: profile),
           ),
-        ),
-      ],
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 21),
+            child: _TechTagSection(profile: profile, myTechStack: myTechStack),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: _LinkSection(profile: profile),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -314,26 +297,16 @@ class _NameSection extends StatelessWidget {
   }
 }
 
-/// 出会いカード：親しい友達判定で 2 パターンに切り替わる横長ピル。
+/// 出会いカード：最後にすれ違った日とイベントを出す横長ピル。
 /// Figma node 1240:1405 の [EncounterMetaPill] にテキストを流し込むだけの薄いラッパ。
 class _EncounterCard extends StatelessWidget {
   final UserModel profile;
-  final bool isCloseFriend;
 
-  const _EncounterCard({required this.profile, required this.isCloseFriend});
+  const _EncounterCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
-    return EncounterMetaPill(text: _buildLabel());
-  }
-
-  String _buildLabel() {
-    if (isCloseFriend) {
-      // TODO(passly): API 未実装のため次回参加イベントはハードコード。
-      // UserModel に upcomingEvent フィールドが追加されたら差し替える。
-      return '3月24日のMatsuribaに参加します';
-    }
-    return _formatLastEncounter();
+    return EncounterMetaPill(text: _formatLastEncounter());
   }
 
   String _formatLastEncounter() {
@@ -346,6 +319,89 @@ class _EncounterCard extends StatelessWidget {
     final day = local.day;
     final eventName = last.eventName.isEmpty ? 'イベント' : last.eventName;
     return '$month月$day日 $eventName で出会いました';
+  }
+}
+
+/// 「☆ お気に入りに追加」/「★ お気に入り済み」のピル。タップで切り替える。
+class _FavoriteButton extends ConsumerWidget {
+  final String userId;
+
+  const _FavoriteButton({required this.userId});
+
+  static const Color _star = Color(0xFFF5B400);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(closeFriendListProvider);
+    final isBusy = favorites.isLoading;
+    final isFavorite =
+        favorites.asData?.value.any((u) => u.id == userId) ?? false;
+
+    return Opacity(
+      opacity: isBusy ? 0.5 : 1,
+      child: Material(
+        color: isFavorite ? const Color(0xFFFFF6D6) : AppColors.backgroundWhite,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: isFavorite ? const Color(0xFFF5C542) : PasslyBorder.strong,
+          ),
+        ),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: isBusy ? null : () => _toggle(context, ref, isFavorite),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 7, 18, 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                  size: 18,
+                  color: isFavorite ? _star : const Color(0xFF4B5563),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isFavorite ? 'お気に入り済み' : 'お気に入りに追加',
+                  style: TextStyle(
+                    color: isFavorite
+                        ? const Color(0xFF9A6B00)
+                        : AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggle(
+    BuildContext context,
+    WidgetRef ref,
+    bool isFavorite,
+  ) async {
+    final notifier = ref.read(closeFriendListProvider.notifier);
+    try {
+      if (isFavorite) {
+        await notifier.removeFriend(userId);
+      } else {
+        await notifier.addFriend(userId);
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(isFavorite ? 'お気に入りの解除に失敗しました' : 'お気に入りの追加に失敗しました'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    }
   }
 }
 
@@ -400,17 +456,40 @@ class _AboutSection extends StatelessWidget {
 
 class _TechTagSection extends StatelessWidget {
   final UserModel profile;
+  final String myTechStack;
 
-  const _TechTagSection({required this.profile});
+  const _TechTagSection({required this.profile, required this.myTechStack});
 
   @override
   Widget build(BuildContext context) {
-    final tags = _parseTags(profile.techStack);
+    final tags = parseTechTags(profile.techStack);
+    final common = commonTechTags(myTechStack, profile.techStack);
+    final commonLower = common.map((t) => t.toLowerCase()).toSet();
+    final others = tags
+        .where((t) => !commonLower.contains(t.toLowerCase()))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('TECH TAG'),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const _SectionHeading('TECH TAG'),
+            if (common.isNotEmpty) ...[
+              const SizedBox(width: 10),
+              Text(
+                'あなたと同じタグが${common.length}つ',
+                style: const TextStyle(
+                  color: PasslyBrand.primaryDark,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ],
+        ),
         const SizedBox(height: 8),
         if (tags.isEmpty)
           const Text(
@@ -425,67 +504,99 @@ class _TechTagSection extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: tags.map((tag) => _TagChip(label: tag)).toList(),
+            children: [
+              for (final tag in common) _SameTagChip(label: tag),
+              for (final tag in others) _TagChip(label: tag),
+            ],
           ),
+        if (common.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 14,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '次に会ったら「${common.first}好きなんですよね」と話しかけてみよう',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
-
-  static List<String> _parseTags(String raw) {
-    if (raw.trim().isEmpty) return const [];
-    return raw
-        .split(RegExp(r'[,、/／・\s]+'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-  }
 }
 
-class _TagChip extends StatelessWidget {
+/// 自分と同じタグ。緑塗り + チェック。
+class _SameTagChip extends StatelessWidget {
   final String label;
-  final IconData? icon;
-  final VoidCallback? onTap;
 
-  const _TagChip({required this.label, this.icon, this.onTap});
+  const _SameTagChip({required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final chip = Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: icon == null ? 12 : 10,
-        vertical: 5,
-      ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.backgroundWhite,
+        color: PasslyBrand.primary,
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: PasslyBrand.primary),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, color: AppColors.textSecondary, size: 14),
-            const SizedBox(width: 4),
-          ],
+          const Icon(Icons.check_rounded, color: Colors.white, size: 13),
+          const SizedBox(width: 4),
           Text(
             label,
             style: const TextStyle(
-              color: AppColors.textPrimary,
+              color: Colors.white,
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
               height: 14.4 / 12,
             ),
           ),
         ],
       ),
     );
+  }
+}
 
-    if (onTap == null) return chip;
+/// 自分とは重ならないタグ。白地に枠線。
+class _TagChip extends StatelessWidget {
+  final String label;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(100),
-      child: chip,
+  const _TagChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundWhite,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: 14.4 / 12,
+        ),
+      ),
     );
   }
 }
@@ -500,26 +611,19 @@ class _LinkSection extends StatelessWidget {
     final links = <_LinkEntry>[
       if (profile.twitterUrl.isNotEmpty)
         _LinkEntry(
-          label: 'X',
-          icon: Icons.alternate_email,
+          label: 'X でフォロー',
           url: _normalizeTwitterUrl(profile.twitterUrl),
         ),
       if (profile.githubUrl.isNotEmpty)
         _LinkEntry(
-          label: 'GitHub',
-          icon: Icons.code,
+          label: 'GitHub を見る',
           url: _normalizeGitHubUrl(profile.githubUrl),
         ),
       if (profile.portfolioUrl.isNotEmpty)
-        _LinkEntry(
-          label: 'Portfolio',
-          icon: Icons.link,
-          url: profile.portfolioUrl,
-        ),
+        _LinkEntry(label: 'ポートフォリオ', url: profile.portfolioUrl),
       if (profile.connpassUrl.isNotEmpty)
         _LinkEntry(
-          label: 'Connpass',
-          icon: Icons.event,
+          label: 'connpass を見る',
           url: _normalizeConnpassUrl(profile.connpassUrl),
         ),
     ];
@@ -527,30 +631,44 @@ class _LinkSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeading('LINK'),
-        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          child: _SectionHeading('LINK'),
+        ),
+        const SizedBox(height: 12),
         if (links.isEmpty)
-          const Text(
-            '未設定',
-            style: TextStyle(
-              color: AppColors.textDisabled,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              '未設定',
+              style: TextStyle(
+                color: AppColors.textDisabled,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           )
         else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: links
-                .map(
-                  (link) => _TagChip(
-                    label: link.label,
-                    icon: link.icon,
-                    onTap: () => _launchUrl(link.url),
-                  ),
-                )
-                .toList(),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 12.0;
+              final width = (constraints.maxWidth - gap) / 2;
+              return Wrap(
+                spacing: gap,
+                runSpacing: gap,
+                children: [
+                  for (int i = 0; i < links.length; i++)
+                    SizedBox(
+                      width: width,
+                      child: _SnsButton(
+                        label: links[i].label,
+                        primary: i == 0,
+                        onTap: () => _launchUrl(links[i].url),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
       ],
     );
@@ -559,199 +677,49 @@ class _LinkSection extends StatelessWidget {
 
 class _LinkEntry {
   final String label;
-  final IconData icon;
   final String url;
 
-  const _LinkEntry({
-    required this.label,
-    required this.icon,
-    required this.url,
-  });
+  const _LinkEntry({required this.label, required this.url});
 }
 
-/// 状態別ボタン領域：未追加は 1 ボタン、親しい友達は緑枠 disabled + 赤塗り解除の 2 段。
-class _CloseFriendActions extends ConsumerWidget {
-  final String userId;
-  final bool isCloseFriend;
-  final bool isBusy;
-
-  const _CloseFriendActions({
-    required this.userId,
-    required this.isCloseFriend,
-    required this.isBusy,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (isCloseFriend) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _OutlinedStatusButton(label: 'すでに親しい友達です'),
-          const SizedBox(height: 9),
-          _RemoveButton(
-            enabled: !isBusy,
-            onTap: () => _handleRemove(context, ref),
-          ),
-        ],
-      );
-    }
-
-    return _AddButton(enabled: !isBusy, onTap: () => _handleAdd(context, ref));
-  }
-
-  Future<void> _handleAdd(BuildContext context, WidgetRef ref) async {
-    try {
-      await ref.read(closeFriendListProvider.notifier).addFriend(userId);
-    } catch (e) {
-      if (context.mounted) {
-        _showError(context, '親しい友達の追加に失敗しました');
-      }
-    }
-  }
-
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref) async {
-    try {
-      await ref.read(closeFriendListProvider.notifier).removeFriend(userId);
-    } catch (e) {
-      if (context.mounted) {
-        _showError(context, '親しい友達の解除に失敗しました');
-      }
-    }
-  }
-
-  void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
-}
-
-class _AddButton extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onTap;
-
-  const _AddButton({required this.enabled, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return _PillButton(
-      backgroundColor: enabled
-          ? AppColors.primary
-          : AppColors.primary.withValues(alpha: 0.5),
-      onTap: enabled ? onTap : null,
-      shadow: BoxShadow(
-        color: Colors.black.withValues(alpha: 0.25),
-        blurRadius: 6,
-        offset: const Offset(0, 2),
-      ),
-      child: const Text(
-        '親しい友達に追加する',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          height: 16.8 / 18,
-        ),
-      ),
-    );
-  }
-}
-
-class _OutlinedStatusButton extends StatelessWidget {
+/// SNS ボタン。先頭だけ黒塗り，ほかは白地に枠線。
+class _SnsButton extends StatelessWidget {
   final String label;
-
-  const _OutlinedStatusButton({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return _PillButton(
-      backgroundColor: AppColors.backgroundWhite,
-      onTap: null,
-      border: Border.all(color: AppColors.primary, width: 1.5),
-      shadow: BoxShadow(
-        color: AppColors.primary.withValues(alpha: 0.4),
-        blurRadius: 6,
-        offset: const Offset(0, 0),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.primary,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          height: 16.8 / 18,
-        ),
-      ),
-    );
-  }
-}
-
-class _RemoveButton extends StatelessWidget {
-  final bool enabled;
+  final bool primary;
   final VoidCallback onTap;
 
-  const _RemoveButton({required this.enabled, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return _PillButton(
-      backgroundColor: enabled
-          ? AppColors.error
-          : AppColors.error.withValues(alpha: 0.5),
-      onTap: enabled ? onTap : null,
-      child: const Text(
-        '親しい友達を解除する',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          height: 16.8 / 18,
-        ),
-      ),
-    );
-  }
-}
-
-/// 共通のピル型ボタン骨格。カラーだけ差し替えて 3 種のボタンを実装する。
-class _PillButton extends StatelessWidget {
-  final Color backgroundColor;
-  final VoidCallback? onTap;
-  final Widget child;
-  final BoxBorder? border;
-  final BoxShadow? shadow;
-
-  const _PillButton({
-    required this.backgroundColor,
+  const _SnsButton({
+    required this.label,
+    required this.primary,
     required this.onTap,
-    required this.child,
-    this.border,
-    this.shadow,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: primary ? PasslyText.primary : AppColors.backgroundWhite,
+      shape: StadiumBorder(
+        side: primary
+            ? BorderSide.none
+            : const BorderSide(color: PasslyBorder.strong),
+      ),
       child: InkWell(
+        customBorder: const StadiumBorder(),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(100),
-        child: Container(
-          height: 50,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(100),
-            border: border,
-            boxShadow: shadow == null ? null : [shadow!],
+        child: SizedBox(
+          height: 48,
+          child: Center(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: primary ? Colors.white : AppColors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-          child: child,
         ),
       ),
     );
