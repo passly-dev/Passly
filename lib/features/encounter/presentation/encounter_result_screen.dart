@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:passly/common/widgets/common_tag_chip.dart';
 import 'package:passly/common/widgets/encounter_loading_skeleton.dart';
 import 'package:passly/common/widgets/info_badge_card.dart';
 import 'package:passly/common/widgets/passly_icon.dart';
@@ -10,6 +11,7 @@ import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/ble/ble_notifier.dart';
 import 'package:passly/features/encounter/domain/encounter_model.dart';
 import 'package:passly/features/encounter/domain/encounter_notifier.dart';
+import 'package:passly/features/user/domain/common_tags.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 
 /// すれ違い結果画面。
@@ -19,6 +21,7 @@ import 'package:passly/features/user/domain/user_model.dart';
 /// - 相手の表示名
 /// - 「出会った場所」= イベント名（未取得なら非表示）
 /// - 「共通タグ」= 自分と相手の tech_stack の積集合（片方でも空なら非表示）
+///   全部チップで出して折り返す。あわせて最初のタグから「話のネタ」を出す。
 ///
 /// TODO(passly): 複数件の見せ方は未確定。
 /// 現状は最新（先頭）1 件のみ表示している。
@@ -88,8 +91,9 @@ class _EncounterCardStackState extends State<_EncounterCardStack> {
       });
       return const SizedBox.shrink();
     }
-    if (_currentIndex >= widget.encounters.length)
+    if (_currentIndex >= widget.encounters.length) {
       return const SizedBox.shrink();
+    }
 
     return Consumer(
       builder: (context, ref, child) {
@@ -442,7 +446,7 @@ class _InfoCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final commonTags = _commonTags(
+    final commonTags = commonTechTags(
       myTechStack,
       encounter.encounteredUser.techStack,
     );
@@ -450,45 +454,70 @@ class _InfoCards extends StatelessWidget {
 
     return Column(
       children: [
-        if (eventName.isNotEmpty)
+        if (eventName.isNotEmpty) ...[
           InfoBadgeCard(
             iconAsset: PasslyIcons.location,
             label: '出会った場所',
             value: eventName,
           ),
-        if (eventName.isNotEmpty && commonTags.isNotEmpty)
           const SizedBox(height: 12),
-        if (commonTags.isNotEmpty)
+        ],
+        if (commonTags.isNotEmpty) ...[
+          _CommonTagCard(tags: commonTags),
+          const SizedBox(height: 12),
           InfoBadgeCard(
-            iconAsset: PasslyIcons.tag,
-            label: '共通タグ',
-            value: commonTags.join(' '),
-            valueColor: PasslyBrand.primaryDark,
+            icon: Icons.chat_bubble_outline_rounded,
+            label: '話のネタ',
+            value: '「${commonTags.first}好きなんですよね」',
           ),
+        ],
       ],
     );
   }
+}
 
-  /// 大文字小文字を無視して積集合を返す。表示順は自分側の順序を維持。
-  List<String> _commonTags(String mine, String other) {
-    final mineTags = _parseTags(mine);
-    final otherTagsLower = _parseTags(other)
-        .map((t) => t.toLowerCase())
-        .toSet();
-    return mineTags
-        .where((t) => otherTagsLower.contains(t.toLowerCase()))
-        .toList();
-  }
+/// 共通タグのカード。タグが増えても見出しは 1 行のまま，
+/// チップだけカードの中で折り返し，カードの高さが伸びる。
+class _CommonTagCard extends StatelessWidget {
+  final List<String> tags;
 
-  /// カンマ / スラッシュ / 中点 / 空白 で区切られた文字列をタグ配列にする。
-  /// profile_screen.dart の tech tag パースと同じロジック。
-  List<String> _parseTags(String raw) {
-    if (raw.trim().isEmpty) return const [];
-    return raw
-        .split(RegExp(r'[,、/／・\s]+'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+  const _CommonTagCard({required this.tags});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 72),
+      decoration: BoxDecoration(
+        color: PasslyBg.soft,
+        borderRadius: BorderRadius.circular(23.15),
+        border: Border.all(color: PasslyBrand.primaryMuted, width: 1),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
+      child: Row(
+        children: [
+          const InfoBadgeIcon(iconAsset: PasslyIcons.tag),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '共通タグ　${tags.length}つ',
+                  style: const TextStyle(
+                    color: PasslyBrand.primaryDark,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    height: 16.8 / 14,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                CommonTagWrap(tags: tags),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
