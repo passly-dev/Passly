@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:passly/core/constants/app_colors.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/calendar/data/calendar_repository.dart';
+import 'package:passly/features/calendar/presentation/widgets/avatar_group_section.dart';
+import 'package:passly/features/event/domain/event_album_notifier.dart';
+import 'package:passly/features/user/domain/common_tags.dart';
 import 'package:passly/features/event/data/event_repository.dart';
 import 'package:passly/features/event/domain/event_model.dart';
 import 'package:passly/core/utils/app_time.dart';
@@ -12,6 +18,35 @@ import 'package:passly/core/utils/app_time.dart';
 ///
 /// eventId をキーに `eventRepositoryProvider.fetchEventDetail()` を叩く。
 /// FeatureFlags.useMockEventDetail によりモック / 実 API を切替。
+/// イベントの日に出会った人（共通タグのある人を先に並べる）。
+final eventMetPeopleProvider =
+    FutureProvider.family<List<AvatarItem>, DateTime>((ref, day) async {
+      final me = ref.watch(authNotifierProvider).value;
+      if (me == null) return const [];
+      final data = await ref
+          .read(calendarRepositoryProvider)
+          .fetchDailyEncounters(userId: me.id, dateString: eventDateParam(day));
+      final users = (data['users'] as List? ?? const [])
+          .whereType<Map>()
+          .toList();
+      bool hasCommon(Map u) => commonTechTags(
+        me.techStack,
+        (u['tech_stack'] ?? u['techStack'])?.toString() ?? '',
+      ).isNotEmpty;
+      final sorted = [
+        ...users.where(hasCommon),
+        ...users.where((u) => !hasCommon(u)),
+      ];
+      return [
+        for (final u in sorted)
+          if ((u['id']?.toString() ?? '').isNotEmpty)
+            AvatarItem(
+              userId: u['id'].toString(),
+              iconUrl: (u['icon_url'] ?? u['iconUrl'])?.toString() ?? '',
+            ),
+      ];
+    });
+
 final eventDetailProvider = FutureProvider.family<EventModel, int>((
   ref,
   eventId,
@@ -132,85 +167,10 @@ class EventDetailScreen extends ConsumerWidget {
               ),
             ),
           ],
-          const SizedBox(height: 32),
-          const Text(
-            '参加者',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (event.participants.isEmpty)
-            const Text(
-              '参加者情報がまだありません',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-            )
-          else
-            ...event.participants.map(_buildParticipantTile),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildParticipantTile(EventParticipant participant) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.backgroundGrey,
-            ),
-            child: participant.iconUrl.isNotEmpty
-                ? ClipOval(
-                    child: Image.network(
-                      participant.iconUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          const Icon(Icons.person, color: AppColors.textLight),
-                    ),
-                  )
-                : const Icon(Icons.person, color: AppColors.textLight),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  participant.name.isEmpty ? '名前未設定' : participant.name,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (participant.oneWord.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    participant.oneWord,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
+          if (event.startAt != null) ...[
+            const SizedBox(height: 32),
+            _MetPeopleSection(day: AppTime.toAppLocal(event.startAt!)),
+          ],
         ],
       ),
     );
@@ -266,6 +226,27 @@ class _MetaRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 以前のカレンダーの日別表示と同じ「この日に出会った人」。
+/// 押すとその日に出会った人の一覧へ。
+class _MetPeopleSection extends ConsumerWidget {
+  final DateTime day;
+
+  const _MetPeopleSection({required this.day});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final date = DateTime(day.year, day.month, day.day);
+    final people = ref.watch(eventMetPeopleProvider(date)).value ?? const [];
+    return AvatarGroupSection(
+      title: 'この日に出会った人',
+      subtitle: '${people.length}人と出会いました',
+      items: people,
+      totalCount: people.length,
+      onTap: () => context.push('/encounters/day/${eventDateParam(date)}'),
     );
   }
 }
