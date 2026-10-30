@@ -14,7 +14,6 @@ import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
 import 'package:passly/features/user/domain/user_model.dart';
-import 'package:passly/core/utils/app_time.dart';
 
 /// 広場画面。
 ///
@@ -128,25 +127,18 @@ class _PlazaScreenState extends ConsumerState<PlazaScreen> {
       else
         for (final e in visible)
           Padding(
+            key: ValueKey(e.userId),
             padding: const EdgeInsets.only(top: PasslySpace.s4),
             child: CommonTagPersonCard(
               name: e.name,
               iconUrl: e.iconUrl,
-              subtitle: _metLabel(e),
+              subtitle: e.eventName.trim(),
               commonTags: tagsOf(e),
               isFavorite: favoriteIds.contains(e.userId),
               onTap: () => context.push('/profile/${e.userId}'),
             ),
           ),
     ];
-  }
-
-  /// 「3月11日 SysHack2026」のように会った日とイベントを 1 行にする。
-  static String _metLabel(RecentEncounter e) {
-    final local = AppTime.toAppLocal(e.metAt);
-    final date = '${local.month}月${local.day}日';
-    final eventName = e.eventName.trim();
-    return eventName.isEmpty ? date : '$date $eventName';
   }
 
   /// 同じ人と何度すれ違っても 1 件にまとめる（新しい方を残す）。
