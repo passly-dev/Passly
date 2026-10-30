@@ -11,6 +11,7 @@ import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
 import 'package:passly/features/user/data/user_repository.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
+import 'package:passly/features/user/domain/next_event.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/core/utils/app_time.dart';
 
@@ -110,6 +111,16 @@ class _ProfileBody extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 21),
             child: _TechTagSection(profile: profile, myTechStack: myTechStack),
+          ),
+          const SizedBox(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 21),
+            child: _SectionHeading('NEXT EVENT'),
+          ),
+          const SizedBox(height: 9),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: _NextEventSection(userId: userId, profile: profile),
           ),
           const SizedBox(height: 24),
           Padding(
@@ -405,6 +416,220 @@ class _FavoriteButton extends ConsumerWidget {
           ),
         );
     }
+  }
+}
+
+/// 「NEXT EVENT」の中身（Figma node 1893:4986 / 1893:4794）。
+///
+/// お気に入りに追加した人だけ、次に参加するイベントを見られる。
+/// お気に入りの状態は [closeFriendListProvider] を見るので、ボタンを押した
+/// 瞬間に切り替わる。
+class _NextEventSection extends ConsumerWidget {
+  final String userId;
+  final UserModel profile;
+
+  const _NextEventSection({required this.userId, required this.profile});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite =
+        ref
+            .watch(closeFriendListProvider)
+            .asData
+            ?.value
+            .any((u) => u.id == userId) ??
+        false;
+    if (!isFavorite) {
+      return const _NextEventPlaceholder(
+        icon: Icons.star_outline_rounded,
+        text: 'お気に入りに追加すると見られます',
+      );
+    }
+    final next = profile.nextEvent;
+    if (next == null) {
+      return const _NextEventPlaceholder(text: '次のイベントはまだありません');
+    }
+    return _NextEventCard(event: next);
+  }
+}
+
+/// 点線枠のカード（お気に入り前 / 予定なし）。
+class _NextEventPlaceholder extends StatelessWidget {
+  final IconData? icon;
+  final String text;
+
+  const _NextEventPlaceholder({this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: const _DashedBorderPainter(
+        color: PasslyBorder.strong,
+        radius: 16,
+      ),
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        alignment: Alignment.centerLeft,
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 18, color: PasslyText.tertiary),
+              const SizedBox(width: 10),
+            ],
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontFamily: PasslyFont.family,
+                  fontSize: 13,
+                  fontWeight: PasslyFont.medium,
+                  color: PasslyText.secondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+
+  const _DashedBorderPainter({required this.color, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          Radius.circular(radius),
+        ).deflate(0.5),
+      );
+    for (final metric in path.computeMetrics()) {
+      for (double d = 0; d < metric.length; d += 9) {
+        canvas.drawPath(metric.extractPath(d, d + 5), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.radius != radius;
+}
+
+/// 次に行くイベントのカード。URL があれば押すと connpass を開く。
+class _NextEventCard extends StatelessWidget {
+  final NextEvent event;
+
+  const _NextEventCard({required this.event});
+
+  static const List<String> _weekdays = ['月', '火', '水', '木', '金', '土', '日'];
+
+  @override
+  Widget build(BuildContext context) {
+    final d = AppTime.toAppLocal(event.startedAt);
+    final dateText = '${d.month}月${d.day}日（${_weekdays[d.weekday - 1]}）';
+    final canOpen = event.url.isNotEmpty;
+    return Material(
+      color: PasslyBg.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: PasslyBorder.divider),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: canOpen ? () => _launchUrl(event.url) : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: PasslyBrand.primarySurface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${d.month}月',
+                      style: const TextStyle(
+                        fontFamily: PasslyFont.family,
+                        fontSize: 10,
+                        fontWeight: PasslyFont.bold,
+                        color: PasslyBrand.primaryDark,
+                      ),
+                    ),
+                    Text(
+                      '${d.day}',
+                      style: const TextStyle(
+                        fontFamily: PasslyFont.family,
+                        fontSize: 18,
+                        fontWeight: PasslyFont.bold,
+                        color: PasslyText.primary,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: PasslyFont.family,
+                        fontSize: 15,
+                        fontWeight: PasslyFont.bold,
+                        color: PasslyText.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      [
+                        dateText,
+                        if (event.place.isNotEmpty) event.place,
+                      ].join('・'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: PasslyFont.family,
+                        fontSize: 12,
+                        color: PasslyText.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (canOpen) ...[
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: PasslyText.tertiary,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

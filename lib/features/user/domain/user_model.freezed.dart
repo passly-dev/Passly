@@ -27,7 +27,8 @@ mixin _$UserModel {
  String get coverUrl;/// 自己紹介文（バックエンド: about）
  String get about;/// この相手を「親しい友達」に登録済みか（バックエンド: is_close_friend）
  bool get isCloseFriend;/// この相手と最後にすれ違った時の情報（バックエンド: last_encounter）
- LastEncounter? get lastEncounter; DateTime? get createdAt; DateTime? get updatedAt;
+ LastEncounter? get lastEncounter;/// この人が次に参加するイベント（バックエンド: next_event）
+ NextEvent? get nextEvent; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,16 +39,16 @@ $UserModelCopyWith<UserModel> get copyWith => _$UserModelCopyWithImpl<UserModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.oneWord, oneWord) || other.oneWord == oneWord)&&(identical(other.role, role) || other.role == role)&&(identical(other.techStack, techStack) || other.techStack == techStack)&&(identical(other.twitterUrl, twitterUrl) || other.twitterUrl == twitterUrl)&&(identical(other.githubUrl, githubUrl) || other.githubUrl == githubUrl)&&(identical(other.portfolioUrl, portfolioUrl) || other.portfolioUrl == portfolioUrl)&&(identical(other.connpassUrl, connpassUrl) || other.connpassUrl == connpassUrl)&&(identical(other.affiliation, affiliation) || other.affiliation == affiliation)&&(identical(other.coverUrl, coverUrl) || other.coverUrl == coverUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.isCloseFriend, isCloseFriend) || other.isCloseFriend == isCloseFriend)&&(identical(other.lastEncounter, lastEncounter) || other.lastEncounter == lastEncounter)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.oneWord, oneWord) || other.oneWord == oneWord)&&(identical(other.role, role) || other.role == role)&&(identical(other.techStack, techStack) || other.techStack == techStack)&&(identical(other.twitterUrl, twitterUrl) || other.twitterUrl == twitterUrl)&&(identical(other.githubUrl, githubUrl) || other.githubUrl == githubUrl)&&(identical(other.portfolioUrl, portfolioUrl) || other.portfolioUrl == portfolioUrl)&&(identical(other.connpassUrl, connpassUrl) || other.connpassUrl == connpassUrl)&&(identical(other.affiliation, affiliation) || other.affiliation == affiliation)&&(identical(other.coverUrl, coverUrl) || other.coverUrl == coverUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.isCloseFriend, isCloseFriend) || other.isCloseFriend == isCloseFriend)&&(identical(other.lastEncounter, lastEncounter) || other.lastEncounter == lastEncounter)&&(identical(other.nextEvent, nextEvent) || other.nextEvent == nextEvent)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,iconUrl,oneWord,role,techStack,twitterUrl,githubUrl,portfolioUrl,connpassUrl,affiliation,coverUrl,about,isCloseFriend,lastEncounter,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,name,email,iconUrl,oneWord,role,techStack,twitterUrl,githubUrl,portfolioUrl,connpassUrl,affiliation,coverUrl,about,isCloseFriend,lastEncounter,nextEvent,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'UserModel(id: $id, name: $name, email: $email, iconUrl: $iconUrl, oneWord: $oneWord, role: $role, techStack: $techStack, twitterUrl: $twitterUrl, githubUrl: $githubUrl, portfolioUrl: $portfolioUrl, connpassUrl: $connpassUrl, affiliation: $affiliation, coverUrl: $coverUrl, about: $about, isCloseFriend: $isCloseFriend, lastEncounter: $lastEncounter, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'UserModel(id: $id, name: $name, email: $email, iconUrl: $iconUrl, oneWord: $oneWord, role: $role, techStack: $techStack, twitterUrl: $twitterUrl, githubUrl: $githubUrl, portfolioUrl: $portfolioUrl, connpassUrl: $connpassUrl, affiliation: $affiliation, coverUrl: $coverUrl, about: $about, isCloseFriend: $isCloseFriend, lastEncounter: $lastEncounter, nextEvent: $nextEvent, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -58,7 +59,7 @@ abstract mixin class $UserModelCopyWith<$Res>  {
   factory $UserModelCopyWith(UserModel value, $Res Function(UserModel) _then) = _$UserModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String email, String iconUrl, String oneWord, UserRole role, String techStack, String twitterUrl, String githubUrl, String portfolioUrl, String connpassUrl, String affiliation, String coverUrl, String about, bool isCloseFriend, LastEncounter? lastEncounter, DateTime? createdAt, DateTime? updatedAt
+ String id, String name, String email, String iconUrl, String oneWord, UserRole role, String techStack, String twitterUrl, String githubUrl, String portfolioUrl, String connpassUrl, String affiliation, String coverUrl, String about, bool isCloseFriend, LastEncounter? lastEncounter, NextEvent? nextEvent, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -75,7 +76,7 @@ class _$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? iconUrl = null,Object? oneWord = null,Object? role = null,Object? techStack = null,Object? twitterUrl = null,Object? githubUrl = null,Object? portfolioUrl = null,Object? connpassUrl = null,Object? affiliation = null,Object? coverUrl = null,Object? about = null,Object? isCloseFriend = null,Object? lastEncounter = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? iconUrl = null,Object? oneWord = null,Object? role = null,Object? techStack = null,Object? twitterUrl = null,Object? githubUrl = null,Object? portfolioUrl = null,Object? connpassUrl = null,Object? affiliation = null,Object? coverUrl = null,Object? about = null,Object? isCloseFriend = null,Object? lastEncounter = freezed,Object? nextEvent = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -93,7 +94,8 @@ as String,coverUrl: null == coverUrl ? _self.coverUrl : coverUrl // ignore: cast
 as String,about: null == about ? _self.about : about // ignore: cast_nullable_to_non_nullable
 as String,isCloseFriend: null == isCloseFriend ? _self.isCloseFriend : isCloseFriend // ignore: cast_nullable_to_non_nullable
 as bool,lastEncounter: freezed == lastEncounter ? _self.lastEncounter : lastEncounter // ignore: cast_nullable_to_non_nullable
-as LastEncounter?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as LastEncounter?,nextEvent: freezed == nextEvent ? _self.nextEvent : nextEvent // ignore: cast_nullable_to_non_nullable
+as NextEvent?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -192,10 +194,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String iconUrl,  String oneWord,  UserRole role,  String techStack,  String twitterUrl,  String githubUrl,  String portfolioUrl,  String connpassUrl,  String affiliation,  String coverUrl,  String about,  bool isCloseFriend,  LastEncounter? lastEncounter,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String iconUrl,  String oneWord,  UserRole role,  String techStack,  String twitterUrl,  String githubUrl,  String portfolioUrl,  String connpassUrl,  String affiliation,  String coverUrl,  String about,  bool isCloseFriend,  LastEncounter? lastEncounter,  NextEvent? nextEvent,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_that.role,_that.techStack,_that.twitterUrl,_that.githubUrl,_that.portfolioUrl,_that.connpassUrl,_that.affiliation,_that.coverUrl,_that.about,_that.isCloseFriend,_that.lastEncounter,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_that.role,_that.techStack,_that.twitterUrl,_that.githubUrl,_that.portfolioUrl,_that.connpassUrl,_that.affiliation,_that.coverUrl,_that.about,_that.isCloseFriend,_that.lastEncounter,_that.nextEvent,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -213,10 +215,10 @@ return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String iconUrl,  String oneWord,  UserRole role,  String techStack,  String twitterUrl,  String githubUrl,  String portfolioUrl,  String connpassUrl,  String affiliation,  String coverUrl,  String about,  bool isCloseFriend,  LastEncounter? lastEncounter,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String iconUrl,  String oneWord,  UserRole role,  String techStack,  String twitterUrl,  String githubUrl,  String portfolioUrl,  String connpassUrl,  String affiliation,  String coverUrl,  String about,  bool isCloseFriend,  LastEncounter? lastEncounter,  NextEvent? nextEvent,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _UserModel():
-return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_that.role,_that.techStack,_that.twitterUrl,_that.githubUrl,_that.portfolioUrl,_that.connpassUrl,_that.affiliation,_that.coverUrl,_that.about,_that.isCloseFriend,_that.lastEncounter,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_that.role,_that.techStack,_that.twitterUrl,_that.githubUrl,_that.portfolioUrl,_that.connpassUrl,_that.affiliation,_that.coverUrl,_that.about,_that.isCloseFriend,_that.lastEncounter,_that.nextEvent,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -233,10 +235,10 @@ return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String email,  String iconUrl,  String oneWord,  UserRole role,  String techStack,  String twitterUrl,  String githubUrl,  String portfolioUrl,  String connpassUrl,  String affiliation,  String coverUrl,  String about,  bool isCloseFriend,  LastEncounter? lastEncounter,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String email,  String iconUrl,  String oneWord,  UserRole role,  String techStack,  String twitterUrl,  String githubUrl,  String portfolioUrl,  String connpassUrl,  String affiliation,  String coverUrl,  String about,  bool isCloseFriend,  LastEncounter? lastEncounter,  NextEvent? nextEvent,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_that.role,_that.techStack,_that.twitterUrl,_that.githubUrl,_that.portfolioUrl,_that.connpassUrl,_that.affiliation,_that.coverUrl,_that.about,_that.isCloseFriend,_that.lastEncounter,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_that.role,_that.techStack,_that.twitterUrl,_that.githubUrl,_that.portfolioUrl,_that.connpassUrl,_that.affiliation,_that.coverUrl,_that.about,_that.isCloseFriend,_that.lastEncounter,_that.nextEvent,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -248,7 +250,7 @@ return $default(_that.id,_that.name,_that.email,_that.iconUrl,_that.oneWord,_tha
 
 
 class _UserModel implements UserModel {
-  const _UserModel({required this.id, required this.name, this.email = '', this.iconUrl = '', this.oneWord = '', this.role = UserRole.other, this.techStack = '', this.twitterUrl = '', this.githubUrl = '', this.portfolioUrl = '', this.connpassUrl = '', this.affiliation = '', this.coverUrl = '', this.about = '', this.isCloseFriend = false, this.lastEncounter, this.createdAt, this.updatedAt});
+  const _UserModel({required this.id, required this.name, this.email = '', this.iconUrl = '', this.oneWord = '', this.role = UserRole.other, this.techStack = '', this.twitterUrl = '', this.githubUrl = '', this.portfolioUrl = '', this.connpassUrl = '', this.affiliation = '', this.coverUrl = '', this.about = '', this.isCloseFriend = false, this.lastEncounter, this.nextEvent, this.createdAt, this.updatedAt});
   
 
 @override final  String id;
@@ -280,6 +282,8 @@ class _UserModel implements UserModel {
 @override@JsonKey() final  bool isCloseFriend;
 /// この相手と最後にすれ違った時の情報（バックエンド: last_encounter）
 @override final  LastEncounter? lastEncounter;
+/// この人が次に参加するイベント（バックエンド: next_event）
+@override final  NextEvent? nextEvent;
 @override final  DateTime? createdAt;
 @override final  DateTime? updatedAt;
 
@@ -293,16 +297,16 @@ _$UserModelCopyWith<_UserModel> get copyWith => __$UserModelCopyWithImpl<_UserMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.oneWord, oneWord) || other.oneWord == oneWord)&&(identical(other.role, role) || other.role == role)&&(identical(other.techStack, techStack) || other.techStack == techStack)&&(identical(other.twitterUrl, twitterUrl) || other.twitterUrl == twitterUrl)&&(identical(other.githubUrl, githubUrl) || other.githubUrl == githubUrl)&&(identical(other.portfolioUrl, portfolioUrl) || other.portfolioUrl == portfolioUrl)&&(identical(other.connpassUrl, connpassUrl) || other.connpassUrl == connpassUrl)&&(identical(other.affiliation, affiliation) || other.affiliation == affiliation)&&(identical(other.coverUrl, coverUrl) || other.coverUrl == coverUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.isCloseFriend, isCloseFriend) || other.isCloseFriend == isCloseFriend)&&(identical(other.lastEncounter, lastEncounter) || other.lastEncounter == lastEncounter)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.oneWord, oneWord) || other.oneWord == oneWord)&&(identical(other.role, role) || other.role == role)&&(identical(other.techStack, techStack) || other.techStack == techStack)&&(identical(other.twitterUrl, twitterUrl) || other.twitterUrl == twitterUrl)&&(identical(other.githubUrl, githubUrl) || other.githubUrl == githubUrl)&&(identical(other.portfolioUrl, portfolioUrl) || other.portfolioUrl == portfolioUrl)&&(identical(other.connpassUrl, connpassUrl) || other.connpassUrl == connpassUrl)&&(identical(other.affiliation, affiliation) || other.affiliation == affiliation)&&(identical(other.coverUrl, coverUrl) || other.coverUrl == coverUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.isCloseFriend, isCloseFriend) || other.isCloseFriend == isCloseFriend)&&(identical(other.lastEncounter, lastEncounter) || other.lastEncounter == lastEncounter)&&(identical(other.nextEvent, nextEvent) || other.nextEvent == nextEvent)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,iconUrl,oneWord,role,techStack,twitterUrl,githubUrl,portfolioUrl,connpassUrl,affiliation,coverUrl,about,isCloseFriend,lastEncounter,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,name,email,iconUrl,oneWord,role,techStack,twitterUrl,githubUrl,portfolioUrl,connpassUrl,affiliation,coverUrl,about,isCloseFriend,lastEncounter,nextEvent,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'UserModel(id: $id, name: $name, email: $email, iconUrl: $iconUrl, oneWord: $oneWord, role: $role, techStack: $techStack, twitterUrl: $twitterUrl, githubUrl: $githubUrl, portfolioUrl: $portfolioUrl, connpassUrl: $connpassUrl, affiliation: $affiliation, coverUrl: $coverUrl, about: $about, isCloseFriend: $isCloseFriend, lastEncounter: $lastEncounter, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'UserModel(id: $id, name: $name, email: $email, iconUrl: $iconUrl, oneWord: $oneWord, role: $role, techStack: $techStack, twitterUrl: $twitterUrl, githubUrl: $githubUrl, portfolioUrl: $portfolioUrl, connpassUrl: $connpassUrl, affiliation: $affiliation, coverUrl: $coverUrl, about: $about, isCloseFriend: $isCloseFriend, lastEncounter: $lastEncounter, nextEvent: $nextEvent, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -313,7 +317,7 @@ abstract mixin class _$UserModelCopyWith<$Res> implements $UserModelCopyWith<$Re
   factory _$UserModelCopyWith(_UserModel value, $Res Function(_UserModel) _then) = __$UserModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String email, String iconUrl, String oneWord, UserRole role, String techStack, String twitterUrl, String githubUrl, String portfolioUrl, String connpassUrl, String affiliation, String coverUrl, String about, bool isCloseFriend, LastEncounter? lastEncounter, DateTime? createdAt, DateTime? updatedAt
+ String id, String name, String email, String iconUrl, String oneWord, UserRole role, String techStack, String twitterUrl, String githubUrl, String portfolioUrl, String connpassUrl, String affiliation, String coverUrl, String about, bool isCloseFriend, LastEncounter? lastEncounter, NextEvent? nextEvent, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -330,7 +334,7 @@ class __$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? iconUrl = null,Object? oneWord = null,Object? role = null,Object? techStack = null,Object? twitterUrl = null,Object? githubUrl = null,Object? portfolioUrl = null,Object? connpassUrl = null,Object? affiliation = null,Object? coverUrl = null,Object? about = null,Object? isCloseFriend = null,Object? lastEncounter = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? iconUrl = null,Object? oneWord = null,Object? role = null,Object? techStack = null,Object? twitterUrl = null,Object? githubUrl = null,Object? portfolioUrl = null,Object? connpassUrl = null,Object? affiliation = null,Object? coverUrl = null,Object? about = null,Object? isCloseFriend = null,Object? lastEncounter = freezed,Object? nextEvent = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_UserModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -348,7 +352,8 @@ as String,coverUrl: null == coverUrl ? _self.coverUrl : coverUrl // ignore: cast
 as String,about: null == about ? _self.about : about // ignore: cast_nullable_to_non_nullable
 as String,isCloseFriend: null == isCloseFriend ? _self.isCloseFriend : isCloseFriend // ignore: cast_nullable_to_non_nullable
 as bool,lastEncounter: freezed == lastEncounter ? _self.lastEncounter : lastEncounter // ignore: cast_nullable_to_non_nullable
-as LastEncounter?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as LastEncounter?,nextEvent: freezed == nextEvent ? _self.nextEvent : nextEvent // ignore: cast_nullable_to_non_nullable
+as NextEvent?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
