@@ -43,16 +43,15 @@ const DemoPerson demoMe = DemoPerson(
 const List<DemoPerson> demoPeople = [
   DemoPerson(
     id: 'demo_01',
-    name: 'みなと',
-    oneWord: 'Flutter と Figma で個人開発中',
-    affiliation: '東海情報工科大学 アプリ開発部',
+    name: 'しすけん',
+    oneWord: 'いつでもシス研に遊びに来てね',
+    affiliation: 'システム工学研究会',
     about:
-        '大学 2 年。UI の細かいアニメーションを作るのが好きです。'
-        '最近は Go でバックエンドも書き始めました。',
+        '愛知工業大学のシステム工学研究会です。'
+        'ハッカソン SysHack や勉強会を開いています。',
     role: 'frontend',
     tags: ['Flutter', 'Dart', 'Figma', 'Go', 'Firebase'],
-    twitterUrl: 'https://x.com/example_minato',
-    githubUrl: 'https://github.com/example-minato',
+    twitterUrl: 'https://x.com/set_official',
   ),
   DemoPerson(
     id: 'demo_02',
