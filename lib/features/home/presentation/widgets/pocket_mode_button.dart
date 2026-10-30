@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,68 +8,125 @@ import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/ble/domain/power_mode_notifier.dart';
 
 /// ナビゲーションバーの右上に浮かぶポケットモードの切り替えボタン
-/// （Figma node 1945:1380「ポケットモード 確定案B」）。
+/// （Figma node 1950:1787「ポケットモード A案」）。
 ///
-/// ON: リュックと状態を緑で「ON・すれ違い中」。OFF: 灰色で「OFF」。
-/// タップで ON / OFF を切り替える。
-class PocketModeButton extends ConsumerWidget {
+/// 直径 52 の白い丸にリュックのアイコン。ON は緑のアイコン + 右上の緑の点、
+/// OFF は灰色のアイコンで点なし。タップで ON / OFF を切り替え、
+/// 切り替えた直後だけボタンの上に「ポケットモード ON / OFF」を約 2 秒出す。
+class PocketModeButton extends ConsumerStatefulWidget {
   const PocketModeButton({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isOn = ref.watch(powerModeProvider) == PowerMode.pocket;
-    final accent = isOn ? PasslyBrand.primary : PasslyText.secondary;
+  ConsumerState<PocketModeButton> createState() => _PocketModeButtonState();
+}
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => ref.read(powerModeProvider.notifier).toggle(),
-      child: PressFeedback(
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 18, 12),
-          decoration: BoxDecoration(
-            color: PasslyBg.surface,
-            borderRadius: BorderRadius.circular(100),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF858E85).withValues(alpha: 0.18),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
+class _PocketModeButtonState extends ConsumerState<PocketModeButton> {
+  static const double _diameter = 52;
+
+  bool _showLabel = false;
+  Timer? _hideTimer;
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    super.dispose();
+  }
+
+  void _toggle() {
+    ref.read(powerModeProvider.notifier).toggle();
+    _hideTimer?.cancel();
+    setState(() => _showLabel = true);
+    _hideTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _showLabel = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isOn = ref.watch(powerModeProvider) == PowerMode.pocket;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        IgnorePointer(
+          child: AnimatedOpacity(
+            opacity: _showLabel ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: PasslyText.primary,
+                borderRadius: BorderRadius.circular(100),
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.backpack_outlined, size: 22, color: accent),
-              const SizedBox(width: 8),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ポケットモード',
-                    style: TextStyle(
-                      fontFamily: PasslyFont.family,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: PasslyText.primary,
-                    ),
-                  ),
-                  Text(
-                    isOn ? 'ON・すれ違い中' : 'OFF',
-                    style: TextStyle(
-                      fontFamily: PasslyFont.family,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: accent,
-                    ),
-                  ),
-                ],
+              child: Text(
+                isOn ? 'ポケットモード ON' : 'ポケットモード OFF',
+                style: const TextStyle(
+                  fontFamily: PasslyFont.family,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: PasslyText.onBrand,
+                ),
               ),
-            ],
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 10),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggle,
+          child: PressFeedback(
+            child: SizedBox(
+              width: _diameter,
+              height: _diameter,
+              child: Stack(
+                children: [
+                  Container(
+                    width: _diameter,
+                    height: _diameter,
+                    decoration: BoxDecoration(
+                      color: PasslyBg.surface,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF858E85,
+                          ).withValues(alpha: 0.18),
+                          blurRadius: 20,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.backpack_outlined,
+                      size: 22,
+                      color: isOn ? PasslyBrand.primary : PasslyText.secondary,
+                    ),
+                  ),
+                  if (isOn)
+                    Positioned(
+                      left: 36,
+                      top: 4,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: PasslyBrand.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: PasslyBg.surface,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

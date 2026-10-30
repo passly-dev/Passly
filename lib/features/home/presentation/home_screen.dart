@@ -96,7 +96,7 @@ class HomeScreen extends ConsumerWidget {
           right: PasslySpace.s16,
           top: PasslySpace.s24,
           // ナビとその上のポケットモードボタンに最後のカードが隠れないようにする
-          bottom: 190,
+          bottom: 180,
         ),
         children: isLoading
             ? const [LoadingCardsSkeleton()]
