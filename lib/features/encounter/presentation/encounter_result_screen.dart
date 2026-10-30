@@ -102,6 +102,8 @@ class _EncounterCardStackState extends State<_EncounterCardStack> {
     final remaining = total - _currentIndex - 1;
 
     // Figma node 1943:1308「スキップ 決定案：C＋進み具合の点」準拠。
+    // スキップは下のリンクだと話のネタが埋もれるので、旧案 A（node 1942:1281）の
+    // 右上の「すべてスキップ」にしている。
     return Consumer(
       builder: (context, ref, child) {
         return Padding(
@@ -109,9 +111,21 @@ class _EncounterCardStackState extends State<_EncounterCardStack> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SizedBox(
+                height: 32,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: remaining >= 2
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 1),
+                          child: _SkipAllButton(onTap: () => _close(ref)),
+                        )
+                      : null,
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 40),
+                  padding: const EdgeInsets.only(top: 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -135,7 +149,6 @@ class _EncounterCardStackState extends State<_EncounterCardStack> {
                 targetUserId: encounter.encounteredUser.id,
                 isLast: isLast,
                 nextLabel: '次の人へ　${_currentIndex + 2} / $total',
-                skipCount: remaining >= 2 ? remaining : 0,
                 onNext: _nextCard,
                 onClose: () => _close(ref),
               ),
@@ -549,13 +562,49 @@ class _CommonTagCardState extends State<_CommonTagCard> {
   }
 }
 
+/// 右上の「すべてスキップ」。押すと残りを飛ばしてホームへ戻る。
+class _SkipAllButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SkipAllButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PasslyBg.surface,
+      shape: const StadiumBorder(
+        side: BorderSide(color: PasslyBorder.defaultBorder),
+      ),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: const SizedBox(
+          height: 32,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 14),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                'すべてスキップ',
+                style: TextStyle(
+                  fontFamily: PasslyFont.family,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: PasslyText.secondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ActionButtons extends StatelessWidget {
   final String targetUserId;
   final bool isLast;
   final String nextLabel;
-
-  /// 「残りN人をスキップしてホームへ」の N。0 ならリンクを出さない。
-  final int skipCount;
   final VoidCallback onNext;
   final Future<void> Function() onClose;
 
@@ -563,7 +612,6 @@ class _ActionButtons extends StatelessWidget {
     required this.targetUserId,
     required this.isLast,
     required this.nextLabel,
-    required this.skipCount,
     required this.onNext,
     required this.onClose,
   });
@@ -600,25 +648,6 @@ class _ActionButtons extends StatelessWidget {
             }
           },
         ),
-        if (skipCount > 0) ...[
-          const SizedBox(height: 9),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onClose,
-            child: Text(
-              '残り$skipCount人をスキップしてホームへ',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: PasslyFont.family,
-                color: PasslyText.secondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                decoration: TextDecoration.underline,
-                decorationColor: PasslyText.secondary,
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }
