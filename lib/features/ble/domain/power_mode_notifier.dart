@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// BLE すれ違い検知の動作モード。
@@ -12,15 +13,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// 統合予定。現状は UI 状態のみを保持する。
 enum PowerMode { normal, pocket }
 
-/// ホーム画面トップ右のトグルボタンで切り替える動作モード。
+/// ホーム画面のナビ右上のポケットモードボタンで切り替える動作モード。
 /// アプリ内メモリのみ (再起動でリセット)。恒久化は次回追加。
 final powerModeProvider = NotifierProvider<PowerModeNotifier, PowerMode>(
   PowerModeNotifier.new,
 );
 
 class PowerModeNotifier extends Notifier<PowerMode> {
+  /// iOS は最初からポケットモード ON（ホームのボタンで切り替える）。
+  /// Android はボタンを出さないので通常使用のまま。
   @override
-  PowerMode build() => PowerMode.normal;
+  PowerMode build() => defaultTargetPlatform == TargetPlatform.iOS
+      ? PowerMode.pocket
+      : PowerMode.normal;
 
   void set(PowerMode mode) {
     if (state == mode) return;

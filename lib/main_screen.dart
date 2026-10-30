@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:passly/core/config/feature_flags.dart';
+import 'package:passly/features/home/presentation/widgets/pocket_mode_button.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -402,6 +403,11 @@ class _MainScreenState extends ConsumerState<MainScreen>
               currentIndex: widget.navigationShell.currentIndex,
               onTap: (index) => _onTap(context, index),
             ),
+            // ポケットモードの切り替え（iOS のホームだけ。ナビの上端から 16 上）
+            if (isBleEnabled &&
+                defaultTargetPlatform == TargetPlatform.iOS &&
+                widget.navigationShell.currentIndex == 0)
+              const Positioned(right: 1, bottom: 80, child: PocketModeButton()),
             if (!isBleEnabled)
               Positioned(
                 right: 0,
