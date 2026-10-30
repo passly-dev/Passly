@@ -13,8 +13,8 @@ import 'package:passly/features/user/domain/common_tags.dart';
 
 /// 指定日のすれ違い相手一覧画面。
 ///
-/// カレンダー画面の日付タップから遷移。データは calendarNotifierProvider の
-/// 該当日エントリから引く。
+/// イベント詳細の「この日に出会った人」などから遷移。データは
+/// calendarNotifierProvider の該当日エントリから引く（開いたときに月を読み込む）。
 ///
 /// 「共通点のある人 / すべて」で切り替えられ，開いたときは共通点のある人を出す。
 /// その日に共通点のある人が 1 人もいなければ，空の画面にしないよう「すべて」で開く。
@@ -32,6 +32,19 @@ class _DailyEncounterListScreenState
     extends ConsumerState<DailyEncounterListScreen> {
   /// ユーザーが切り替えた後のタブ。null の間は自動で決める。
   int? _selectedTab;
+
+  @override
+  void initState() {
+    super.initState();
+    // 以前はカレンダー画面が月のデータを読み込んでいたが、イベント画面に
+    // 変わって読み込まれなくなったので、この画面を開いたときに読み込む。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref
+          .read(calendarNotifierProvider.notifier)
+          .fetchMonthData(DateTime(widget.date.year, widget.date.month));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
