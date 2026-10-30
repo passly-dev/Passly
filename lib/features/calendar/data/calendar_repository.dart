@@ -87,14 +87,19 @@ class CalendarRepository {
     ).toList();
   }
 
+  /// イベント一覧をそのまま返す（GET /events）。月で絞らない。
+  Future<List<Map<String, dynamic>>> fetchAllEvents() async {
+    final response = await _dio.get('/events');
+    final data = response.data;
+    if (data is! List) return const [];
+    return data.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
   /// イベントがある日付（日本時間の年月日）をすべて返す（GET /events）。
   /// 週表示の目印に使う。月をまたぐ週でも出せるよう、月で絞らない。
   Future<Set<DateTime>> fetchEventDates() async {
-    final response = await _dio.get('/events');
-    final data = response.data;
-    if (data is! List) return const {};
     final dates = <DateTime>{};
-    for (final raw in data.whereType<Map>()) {
+    for (final raw in await fetchAllEvents()) {
       final startAtUtc = DateTime.tryParse(raw['start_at']?.toString() ?? '');
       if (startAtUtc == null) continue;
       final local = AppTime.toAppLocal(startAtUtc);

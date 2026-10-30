@@ -10,6 +10,7 @@ import 'package:passly/features/auth/presentation/sign_up_screen.dart';
 import 'package:passly/features/close_friend/presentation/close_friend_list_screen.dart';
 import 'package:passly/features/encounter/presentation/daily_encounter_list_screen.dart';
 import 'package:passly/features/encounter/presentation/encounter_result_screen.dart';
+import 'package:passly/features/event/presentation/event_album_screen.dart';
 import 'package:passly/features/event/presentation/event_detail_screen.dart';
 import 'package:passly/features/event/presentation/event_search_screen.dart';
 import 'package:passly/features/home/presentation/home_screen.dart';
@@ -17,7 +18,6 @@ import 'package:passly/features/plaza/presentation/friend_search_screen.dart';
 import 'package:passly/features/plaza/presentation/plaza_screen.dart';
 import 'package:passly/features/plaza/presentation/profile_screen.dart';
 import 'package:passly/features/calendar/presentation/calendar_screen.dart';
-import 'package:passly/features/calendar/presentation/week_calendar_screen.dart';
 import 'package:passly/features/mypage/presentation/mypage_qr_screen.dart';
 import 'package:passly/features/mypage/presentation/mypage_screen.dart';
 import 'package:passly/features/mypage/presentation/qr_scan_screen.dart';
@@ -192,12 +192,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // タブ3: カレンダー（週表示がデフォルト）
+          // タブ3: イベント（旧カレンダー。参加したイベントを並べる）
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/calendar',
-                builder: (context, state) => const WeekCalendarScreen(),
+                builder: (context, state) => const EventAlbumScreen(),
               ),
             ],
           ),

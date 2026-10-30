@@ -1,0 +1,146 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:passly/core/utils/app_time.dart';
+import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/calendar/data/calendar_repository.dart';
+import 'package:passly/features/user/domain/common_tags.dart';
+
+/// イベント画面のカード 1 枚分。
+class EventSummary {
+  final int? id;
+  final String name;
+
+  /// 開始日時（日本時間）。
+  final DateTime startAt;
+  final String location;
+  final String imageUrl;
+
+  /// そのイベントの日に出会った人（アイコン用）。
+  final List<EventMetUser> metUsers;
+
+  /// 出会った人のうち、自分と同じタグがある人の数。
+  final int sameTagCount;
+
+  const EventSummary({
+    required this.id,
+    required this.name,
+    required this.startAt,
+    required this.location,
+    required this.imageUrl,
+    this.metUsers = const [],
+    this.sameTagCount = 0,
+  });
+
+  DateTime get day => DateTime(startAt.year, startAt.month, startAt.day);
+}
+
+class EventMetUser {
+  final String id;
+  final String iconUrl;
+
+  const EventMetUser({required this.id, required this.iconUrl});
+}
+
+/// イベント画面のデータ。
+class EventAlbum {
+  /// いちばん近い、これから参加するイベント。なければ null。
+  final EventSummary? upcoming;
+
+  /// 参加したイベント（今日まで）。新しい順。
+  final List<EventSummary> past;
+
+  const EventAlbum({required this.upcoming, required this.past});
+}
+
+/// イベント画面（旧カレンダー）のデータ。
+///
+/// GET /events からイベントを取り、今日までのものは GET /users/:id/calendar/daily
+/// でその日に出会った人を取って、人数と同じタグの人数を出す。
+final eventAlbumProvider = FutureProvider<EventAlbum>((ref) async {
+  final me = ref.watch(authNotifierProvider).value;
+  if (me == null) return const EventAlbum(upcoming: null, past: []);
+
+  final repo = ref.read(calendarRepositoryProvider);
+  final now = AppTime.nowLocal();
+  final today = DateTime(now.year, now.month, now.day);
+
+  final events = <EventSummary>[];
+  for (final raw in await repo.fetchAllEvents()) {
+    final startUtc = DateTime.tryParse(raw['start_at']?.toString() ?? '');
+    if (startUtc == null) continue;
+    events.add(
+      EventSummary(
+        id: raw['id'] is int ? raw['id'] as int : int.tryParse('${raw['id']}'),
+        name: raw['name']?.toString() ?? '',
+        startAt: AppTime.toAppLocal(startUtc),
+        location: raw['location']?.toString() ?? '',
+        imageUrl: raw['image_url']?.toString() ?? '',
+      ),
+    );
+  }
+
+  final upcoming = events.where((e) => e.day.isAfter(today)).toList()
+    ..sort((a, b) => a.startAt.compareTo(b.startAt));
+  final past = events.where((e) => !e.day.isAfter(today)).toList()
+    ..sort((a, b) => b.startAt.compareTo(a.startAt));
+
+  final withPeople = await Future.wait(
+    past.map((e) async {
+      try {
+        final data = await repo.fetchDailyEncounters(
+          userId: me.id,
+          dateString: eventDateParam(e.day),
+        );
+        final users = (data['users'] as List? ?? const [])
+            .whereType<Map>()
+            .toList();
+        return EventSummary(
+          id: e.id,
+          name: e.name,
+          startAt: e.startAt,
+          location: e.location,
+          imageUrl: e.imageUrl,
+          metUsers: [
+            for (final u in users)
+              EventMetUser(
+                id: u['id']?.toString() ?? '',
+                iconUrl: (u['icon_url'] ?? u['iconUrl'])?.toString() ?? '',
+              ),
+          ],
+          sameTagCount: users
+              .where(
+                (u) => commonTechTags(
+                  me.techStack,
+                  (u['tech_stack'] ?? u['techStack'])?.toString() ?? '',
+                ).isNotEmpty,
+              )
+              .length,
+        );
+      } catch (_) {
+        return e;
+      }
+    }),
+  );
+
+  return EventAlbum(
+    upcoming: upcoming.isEmpty ? null : upcoming.first,
+    past: withPeople,
+  );
+});
+
+/// 参加したイベントを 2 列で並べるか（false なら 1 列の大きいカード）。
+/// アプリを開いている間だけ覚える。
+final eventAlbumGridProvider = NotifierProvider<EventAlbumGridNotifier, bool>(
+  EventAlbumGridNotifier.new,
+);
+
+class EventAlbumGridNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool grid) => state = grid;
+}
+
+/// 日別 API や /encounters/day/:date に渡す YYYY-MM-DD。
+String eventDateParam(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
