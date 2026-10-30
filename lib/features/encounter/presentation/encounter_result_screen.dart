@@ -555,7 +555,7 @@ class _ActionButtons extends StatelessWidget {
         _PillButton(
           backgroundColor: PasslyBg.surface,
           textColor: isLast ? PasslyText.secondary : PasslyText.primary,
-          label: isLast ? '閉じる' : nextLabel,
+          label: isLast ? 'ホームへ' : nextLabel,
           fontSize: isLast ? 20 : 16,
           onTap: () async {
             if (isLast) {
