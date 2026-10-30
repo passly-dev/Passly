@@ -256,7 +256,7 @@ class _EmptyMessage extends StatelessWidget {
 
 /// いちばん共通点が多い人のカード。
 ///
-/// アイコン + 名前 + 「◯◯ですれ違いました」，同じタグ（全部・折り返し），
+/// アイコン + 名前 + 「◯◯ですれ違いました」，共通タグ（全部・折り返し），
 /// 「プロフィールを見る」ボタン。
 class _FeaturedCard extends StatelessWidget {
   final RecentEncounter encounter;
@@ -335,7 +335,7 @@ class _FeaturedCard extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 3, right: 6),
                 child: Text(
-                  '同じタグ',
+                  '共通タグ',
                   style: TextStyle(
                     fontFamily: PasslyFont.family,
                     color: PasslyBrand.primaryDark,
