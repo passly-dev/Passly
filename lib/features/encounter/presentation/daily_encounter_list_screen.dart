@@ -105,6 +105,7 @@ class _DailyEncounterListScreenState
                   else
                     for (final p in visible)
                       Padding(
+                        key: ValueKey(p.userId),
                         padding: const EdgeInsets.only(top: PasslySpace.s4),
                         child: CommonTagPersonCard(
                           name: p.name,

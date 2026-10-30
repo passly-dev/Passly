@@ -148,6 +148,7 @@ class _Avatar extends StatelessWidget {
             ? Image.network(
                 url,
                 fit: BoxFit.cover,
+                gaplessPlayback: true,
                 errorBuilder: (_, _, _) => const _AvatarFallback(),
               )
             : const _AvatarFallback(),
