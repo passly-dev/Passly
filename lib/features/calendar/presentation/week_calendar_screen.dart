@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:passly/common/widgets/passly_header.dart';
 import 'package:passly/core/constants/app_colors.dart';
-import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
-import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/features/calendar/domain/calendar_notifier.dart';
 import 'package:passly/features/calendar/presentation/widgets/avatar_group_section.dart';
 import 'package:passly/features/calendar/presentation/widgets/day_event_card.dart';
@@ -19,7 +17,6 @@ import 'package:passly/core/utils/app_time.dart';
 /// - 週の日付ピル（7 日）
 /// - その日のイベントカード → /events/:id
 /// - 「この日に出会った人」 → /encounters/day/:date
-/// - 「親しい友達」 → /close-friends
 class WeekCalendarScreen extends ConsumerStatefulWidget {
   const WeekCalendarScreen({super.key});
 
@@ -83,7 +80,6 @@ class _WeekCalendarScreenState extends ConsumerState<WeekCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final calendarState = ref.watch(calendarNotifierProvider);
-    final closeFriendsAsync = ref.watch(closeFriendListProvider);
 
     final dayData = _findDayData(calendarState.encounterDays, _selectedDate);
 
@@ -117,7 +113,6 @@ class _WeekCalendarScreenState extends ConsumerState<WeekCalendarScreen> {
                     selectedDate: _selectedDate,
                     dayData: dayData,
                   ),
-                  _CloseFriendSection(closeFriendsAsync: closeFriendsAsync),
                 ],
               ),
             ),
@@ -355,28 +350,6 @@ class _EncounterSection extends StatelessWidget {
             '${selectedDate.year.toString().padLeft(4, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
         context.push('/encounters/day/$dateParam');
       },
-    );
-  }
-}
-
-class _CloseFriendSection extends StatelessWidget {
-  final AsyncValue<List<UserModel>> closeFriendsAsync;
-
-  const _CloseFriendSection({required this.closeFriendsAsync});
-
-  @override
-  Widget build(BuildContext context) {
-    final users = closeFriendsAsync.asData?.value ?? const <UserModel>[];
-    final items = users
-        .map((u) => AvatarItem(userId: u.id, iconUrl: u.iconUrl))
-        .toList();
-
-    return AvatarGroupSection(
-      title: '親しい友達',
-      subtitle: '${users.length}人と出会いました',
-      items: items,
-      totalCount: users.length,
-      onTap: () => context.push('/close-friends'),
     );
   }
 }
