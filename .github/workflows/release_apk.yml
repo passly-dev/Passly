@@ -1,0 +1,103 @@
+name: Build and Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'リリースするタグ名 (例: v1.0.0-event)'
+        required: true
+        default: 'v1.0.0-event'
+      prerelease:
+        description: 'プレリリース（テスト配布版）として公開する'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. リポジトリのチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. JDK 21 のセットアップ (Android Gradle Plugin 8.x との完全な互換性)
+      - name: Set up Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # 3. Flutter SDK のセットアップ (キャッシュ有効化)
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: 'stable'
+          cache: true
+
+      # 4. 依存パッケージの取得とコード生成
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # 5. 通常版 (Production) Release APK のビルド
+      - name: Build Production Release APK
+        run: |
+          flutter build apk --release
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/Passly-Production.apk
+
+      # 6. デモ版 (Demo) Release APK のビルド
+      - name: Build Demo Release APK
+        run: |
+          flutter build apk --release --dart-define=DEMO_MODE=true
+          cp build/app/outputs/flutter-apk/app-release.apk dist/Passly-Demo.apk
+
+      # 7. SHA256チェックサムの生成
+      - name: Generate Checksums
+        working-directory: dist
+        run: |
+          sha256sum Passly-Production.apk Passly-Demo.apk > checksums.txt
+          cat checksums.txt
+
+      # 8. GitHub Release の自動作成と成果物アップロード
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: Passly Android APK ${{ github.event.inputs.tag_name || github.ref_name }}
+          body: |
+            ## 📱 Passly イベント配布・実機テスト用 APK
+            
+            本リリースは、GitHub Actions により自動ビルドされた Android APK です。
+            
+            ### 📦 ダウンロード
+            - **`Passly-Demo.apk` (推奨・体験用)**
+              - バックエンドサーバー不要。ダミーデータですぐにUI操作・体験が可能です。
+              - （※BLEすれ違い通信は動作しません）
+            - **`Passly-Production.apk` (通常版)**
+              - サーバー通信連携版。実際にBLEすれ違い通信を行いサーバーと同期します。
+            - **`checksums.txt`**
+              - 改ざん防止・検証用 SHA256 チェックサム
+            
+            ### 📲 インストール時の注意点
+            1. ダウンロード後、APKファイルをタップしてインストールしてください。
+            2. 「提供元不明のアプリ」「Playプロテクト」の警告が表示された場合は、「詳細」→「無視してインストール」を選択してください。
+            3. 初回起動時の「Bluetooth」「位置情報」「通知」の権限をすべて許可してください。
+          prerelease: ${{ github.event.inputs.prerelease || true }}
+          draft: false
+          generate_release_notes: true
+          files: |
+            dist/Passly-Production.apk
+            dist/Passly-Demo.apk
+            dist/checksums.txt

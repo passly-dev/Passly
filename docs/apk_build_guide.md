@@ -62,6 +62,25 @@ flutter build apk --release --no-pub --dart-define=DEMO_MODE=true
 ```
 ※ ビルドされたAPKは `build/app/outputs/flutter-apk/app-release.apk` に生成されます。
 
+### 2.3. GitHub Actions による自動ビルド＆リリース（推奨）
+
+ローカル環境の差異や作業負担をなくすため、GitHub Actions ワークフロー（`.github/workflows/release_apk.yml`）を用意しています。タグの push または GitHub の Web 画面から実行することで、クラウド上で通常版・デモ版の APK が自動ビルドされ、GitHub Releases に即座に公開されます。
+
+#### A. バージョンタグを push して自動公開する場合
+```bash
+# バージョンタグを作成（例: v1.0.0-event）
+git tag v1.0.0-event
+
+# タグをリモートに push（これだけでビルドとReleases作成が自動実行されます）
+git push origin v1.0.0-event
+```
+
+#### B. GitHub の Web 画面から手動で実行する場合
+1. GitHub のリポジトリページを開き、**「Actions」** タブを選択します。
+2. 左側のワークフロー一覧から **「Build and Release Android APK」** を選択します。
+3. **「Run workflow」** ドロップダウンをクリックし、タグ名（例: `v1.0.0-event`）を入力して実行ボタンを押します。
+4. 数分でビルドが完了し、Releases ページに `Passly-Production.apk` および `Passly-Demo.apk` が添付されたリリースが公開されます。
+
 ---
 
 ## 3. 実機へのインストール手順
