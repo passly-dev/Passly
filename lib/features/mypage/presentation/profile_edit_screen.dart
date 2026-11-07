@@ -23,7 +23,7 @@ import 'package:passly/features/user/domain/user_model.dart';
 /// - 保存は右上。変更があるときだけ緑になる
 /// - 変更したまま戻ろうとすると確認を出す
 ///
-/// アイコンとカバー画像は選んだ時点でアップロードする (今までどおり)。
+/// アイコンとカバー画像は選んだ時点では画面に出すだけで，保存を押したときにアップロードする。
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
 
@@ -136,7 +136,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     'connpass_username': _connpass.text.trim(),
   };
 
-  bool get _isDirty {
+  bool get _isDirty =>
+      _isTextDirty || _localAvatarPath != null || _localCoverPath != null;
+
+  bool get _isTextDirty {
     final now = _snapshot();
     return now.keys.any((k) => now[k] != _initial[k]);
   }
@@ -174,9 +177,44 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     FocusScope.of(context).unfocus();
     setState(() => _isSaving = true);
     try {
-      final body = _snapshot();
-      if (body['name']!.trim().isEmpty) body['name'] = '未設定';
-      await ref.read(userRepositoryProvider).updateUser(user.id, body);
+      final repo = ref.read(userRepositoryProvider);
+      final avatarPath = _localAvatarPath;
+      final coverPath = _localCoverPath;
+      if (avatarPath != null) {
+        setState(() => _isUploadingAvatar = true);
+        try {
+          await repo.uploadAvatar(user.id, avatarPath);
+        } catch (e) {
+          debugPrint('avatar upload failed: $e');
+          throw '画像を変更できませんでした．別の画像で試してください．';
+        }
+        if (mounted) {
+          setState(() {
+            _localAvatarPath = null;
+            _isUploadingAvatar = false;
+          });
+        }
+      }
+      if (coverPath != null) {
+        setState(() => _isUploadingCover = true);
+        try {
+          await repo.uploadCover(user.id, coverPath);
+        } catch (e) {
+          debugPrint('cover upload failed: $e');
+          throw 'カバー画像を変更できませんでした．別の画像で試してください．';
+        }
+        if (mounted) {
+          setState(() {
+            _localCoverPath = null;
+            _isUploadingCover = false;
+          });
+        }
+      }
+      if (_isTextDirty) {
+        final body = _snapshot();
+        if (body['name']!.trim().isEmpty) body['name'] = '未設定';
+        await repo.updateUser(user.id, body);
+      }
       await ref.read(authNotifierProvider.notifier).refresh();
       if (!mounted) return;
       _initial = _snapshot();
@@ -195,12 +233,18 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('保存に失敗しました: $e'),
+            content: Text(e is String ? e : '保存に失敗しました: $e'),
             backgroundColor: PasslyState.error,
           ),
         );
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isUploadingAvatar = false;
+          _isUploadingCover = false;
+        });
+      }
     }
   }
 
@@ -231,7 +275,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     if (leave == true && mounted) context.pop();
   }
 
-  Future<void> _pickAndUploadAvatar() async {
+  Future<void> _pickAvatar() async {
     final user = ref.read(authNotifierProvider).value;
     if (user == null) return;
     // 大きい写真をそのまま読むと重いので，選んだ時点で小さくする（JPEG になる）。
@@ -251,27 +295,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     );
     if (croppedPath == null || !mounted) return;
 
-    setState(() {
-      _localAvatarPath = croppedPath;
-      _isUploadingAvatar = true;
-    });
-    try {
-      await ref.read(userRepositoryProvider).uploadAvatar(user.id, croppedPath);
-      await ref.read(authNotifierProvider.notifier).refresh();
-    } catch (e) {
-      debugPrint('avatar upload failed: $e');
-      _showError('画像を変更できませんでした．別の画像で試してください．');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _localAvatarPath = null;
-          _isUploadingAvatar = false;
-        });
-      }
-    }
+    // ここではまだ送らない．保存を押したときにアップロードする．
+    setState(() => _localAvatarPath = croppedPath);
   }
 
-  Future<void> _pickAndUploadCover() async {
+  Future<void> _pickCover() async {
     final user = ref.read(authNotifierProvider).value;
     if (user == null) return;
     // 写真をそのまま送ると数 MB になりサーバーに断られる（400）ので，
@@ -284,33 +312,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     );
     if (picked == null || !mounted) return;
 
-    setState(() {
-      _localCoverPath = picked.path;
-      _isUploadingCover = true;
-    });
-    try {
-      await ref.read(userRepositoryProvider).uploadCover(user.id, picked.path);
-      await ref.read(authNotifierProvider.notifier).refresh();
-    } catch (e) {
-      debugPrint('cover upload failed: $e');
-      _showError('カバー画像を変更できませんでした．別の画像で試してください．');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _localCoverPath = null;
-          _isUploadingCover = false;
-        });
-      }
-    }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: PasslyState.error),
-      );
+    // ここではまだ送らない．保存を押したときにアップロードする．
+    setState(() => _localCoverPath = picked.path);
   }
 
   @override
@@ -350,8 +353,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     localAvatarPath: _localAvatarPath,
                     isUploadingCover: _isUploadingCover,
                     isUploadingAvatar: _isUploadingAvatar,
-                    onEditCover: _pickAndUploadCover,
-                    onEditAvatar: _pickAndUploadAvatar,
+                    onEditCover: _pickCover,
+                    onEditAvatar: _pickAvatar,
                   ),
                   const SizedBox(height: 12),
                   const _Heading('基本'),

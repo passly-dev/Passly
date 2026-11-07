@@ -24,19 +24,29 @@ import 'package:passly/features/mypage/presentation/profile_edit_screen.dart';
 import 'package:passly/features/mypage/presentation/qr_scan_screen.dart';
 import 'package:passly/features/mypage/presentation/stamp_card_screen.dart';
 import 'package:passly/features/settings/presentation/settings_screen.dart';
+import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/main_screen.dart';
 import 'package:passly/core/utils/app_time.dart';
 
 /// GoRouterのリフレッシュ用Notifier
+///
+/// ログイン・ログアウトなど，リダイレクトの判断が変わるときだけ通知する．
+/// プロフィール保存後の refresh() のように同じユーザーの情報が更新されただけで
+/// 通知すると，直後の pop と競合して編集画面が戻ってきてしまうため．
 class RouterNotifier extends ChangeNotifier {
   final Ref ref;
   RouterNotifier(this.ref) {
-    ref.listen<AsyncValue<dynamic>>(
-      authNotifierProvider,
-      (previous, next) => notifyListeners(),
-    );
+    ref.listen<AsyncValue<UserModel?>>(authNotifierProvider, (previous, next) {
+      if (previous == null || routerAuthKey(previous) != routerAuthKey(next)) {
+        notifyListeners();
+      }
+    });
   }
 }
+
+/// リダイレクトに関係する認証状態だけを取り出す（読み込み中か・エラーか・誰か）．
+(bool, bool, String?) routerAuthKey(AsyncValue<UserModel?> auth) =>
+    (auth.isLoading, auth.hasError, auth.whenOrNull(data: (user) => user?.id));
 
 /// GoRouterの設定を管理するプロバイダー
 final appRouterProvider = Provider<GoRouter>((ref) {
