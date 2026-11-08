@@ -3,10 +3,10 @@ import 'package:passly/common/widgets/sized_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:passly/common/widgets/common_tag_chip.dart';
 import 'package:passly/common/widgets/common_tag_person_card.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/common/widgets/tag_sticker.dart';
 import 'package:passly/core/constants/app_colors.dart';
 import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
@@ -257,7 +257,7 @@ class _EmptyMessage extends StatelessWidget {
 
 /// いちばん共通点が多い人のカード。
 ///
-/// アイコン + 名前 + 「◯◯ですれ違いました」，共通タグ（全部・折り返し），
+/// アイコン + 名前 + 「◯◯ですれ違いました」，共通タグのステッカー（全部・折り返し），
 /// 「プロフィールを見る」ボタン。
 class _FeaturedCard extends StatelessWidget {
   final RecentEncounter encounter;
@@ -330,22 +330,22 @@ class _FeaturedCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const Text(
+            '共通タグ',
+            style: TextStyle(
+              fontFamily: PasslyFont.family,
+              color: PasslyBrand.primaryDark,
+              fontSize: 12,
+              fontWeight: PasslyFont.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 12,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 3, right: 6),
-                child: Text(
-                  '共通タグ',
-                  style: TextStyle(
-                    fontFamily: PasslyFont.family,
-                    color: PasslyBrand.primaryDark,
-                    fontSize: 12,
-                    fontWeight: PasslyFont.bold,
-                  ),
-                ),
-              ),
-              Expanded(child: CommonTagWrap(tags: commonTags)),
+              for (final tag in commonTags)
+                LabeledTagSticker(tag: tag, same: true),
             ],
           ),
           const SizedBox(height: 14),
