@@ -58,8 +58,13 @@ class _MainScreenState extends ConsumerState<MainScreen>
     // 起動時の電源モード（☀️ 通常 / 🌙 ポケット）に応じて近接センサー監視を初期化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncProximitySensorWithMode();
+      if (!mounted) return;
+      _routerDelegate = GoRouter.of(context).routerDelegate
+        ..addListener(_onRouteChanged);
     });
   }
+
+  GoRouterDelegate? _routerDelegate;
 
   /// 現在の電源モード（☀️ 通常 / 🌙 ポケット）に応じて近接センサー監視を同期する
   ///
@@ -109,6 +114,7 @@ class _MainScreenState extends ConsumerState<MainScreen>
   void dispose() {
     // アプリ完全終了時にBLEおよび近接センサーを停止
     WidgetsBinding.instance.removeObserver(this);
+    _routerDelegate?.removeListener(_onRouteChanged);
     _stopProximitySensor();
     WakelockPlus.disable();
     _stopBle();
@@ -256,6 +262,24 @@ class _MainScreenState extends ConsumerState<MainScreen>
     }
   }
 
+  /// すれ違い結果画面へ自動で切り替えてよい画面（下のタブの一覧だけ）。
+  ///
+  /// プロフィール編集など，タブの上に重ねて開いている画面では自動で切り替えない。
+  /// `context.go` で切り替えると重ねていた画面が消え，入力中の内容がなくなるため。
+  static const Set<String> _autoOpenLocations = {
+    '/home',
+    '/plaza',
+    '/calendar',
+    '/mypage',
+  };
+
+  /// いま一番上に出ている画面の場所（タブの上に重ねた画面を含む）。
+  String _currentLocation() =>
+      GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+
+  /// 見送ったときの未確認の人数。同じ人数で何度もお知らせを出さないために使う。
+  int _deferredPendingCount = 0;
+
   void _navigateToEncounterIfPending({required String reason}) {
     if (!mounted) return;
 
@@ -266,7 +290,7 @@ class _MainScreenState extends ConsumerState<MainScreen>
       return;
     }
 
-    final location = GoRouterState.of(context).matchedLocation;
+    final location = _currentLocation();
     if (location == '/encounter-result') {
       debugPrint(
         'すれ違い結果遷移スキップ: 既に表示中 (reason=$reason, pending=${pending.length})',
@@ -274,10 +298,43 @@ class _MainScreenState extends ConsumerState<MainScreen>
       return;
     }
 
+    // ダイアログやシートを開いている間も切り替えない（閉じたあとに切り替える）
+    final isCovered = !(ModalRoute.isCurrentOf(context) ?? true);
+    if (!_autoOpenLocations.contains(location) || isCovered) {
+      debugPrint('すれ違い結果遷移を見送り: 操作中の画面 (reason=$reason, from=$location)');
+      _showDeferredEncounterNotice(pending.length);
+      return;
+    }
+
     debugPrint(
       'すれ違い結果へ遷移: reason=$reason, pending=${pending.length}, from=$location',
     );
+    _deferredPendingCount = 0;
     context.go('/encounter-result');
+  }
+
+  /// 操作中の画面の下に「すれ違った人がいる」ことを小さく出す。
+  /// 画面を閉じてタブの一覧に戻ったときに，すれ違い結果画面へ切り替える。
+  void _showDeferredEncounterNotice(int pendingCount) {
+    if (pendingCount <= _deferredPendingCount) return;
+    _deferredPendingCount = pendingCount;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('新しく$pendingCount人とすれ違いました．この画面を閉じると表示します'),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+  }
+
+  /// 画面が切り替わったら，見送っていたすれ違い結果を出せるか確かめる。
+  void _onRouteChanged() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigateToEncounterIfPending(reason: 'route_changed');
+    });
   }
 
   @override
