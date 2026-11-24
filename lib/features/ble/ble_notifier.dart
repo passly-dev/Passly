@@ -8,6 +8,8 @@ import 'package:passly/features/encounter/data/encounter_repository.dart';
 import 'package:passly/features/ble/ble_service.dart';
 import 'package:passly/features/encounter/data/pending_encounter_repository.dart';
 import 'package:passly/features/notification/notification_service.dart';
+import 'package:passly/features/notification/encounter_notification_text.dart';
+import 'package:passly/features/ble/domain/power_mode_notifier.dart';
 
 /// BLE状態を管理するプロバイダー
 final bleNotifierProvider = NotifierProvider<BleNotifier, BleState>(
@@ -63,7 +65,12 @@ class BleNotifier extends Notifier<BleState> with WidgetsBindingObserver {
   List<EphemeralToken> _tokenPool = [];
   Timer? _rotationTimer;
   bool _isSyncing = false;
-  bool _hasNotifiedInBackground = false;
+
+  /// 最後にすれ違いの通知を出した時刻。続けてすれ違ったときに鳴りすぎないようにする。
+  DateTime? _lastEncounterNotifiedAt;
+
+  /// 通知を出してから次に鳴らすまでの間隔。間にすれ違った人は次の通知の人数に入る。
+  static const Duration _encounterNotifyInterval = Duration(minutes: 3);
 
   @override
   BleState build() {
@@ -82,11 +89,8 @@ class BleNotifier extends Notifier<BleState> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _hasNotifiedInBackground = false;
       ref.read(notificationServiceProvider).cancelEncounterReminder();
       syncUnsentTokens();
-    } else if (state == AppLifecycleState.paused) {
-      _hasNotifiedInBackground = false;
     }
   }
 
@@ -281,6 +285,33 @@ class BleNotifier extends Notifier<BleState> with WidgetsBindingObserver {
     await _handleEncounterConfirmed(ephemeralId);
   }
 
+  /// すれ違いの通知を出す。画面を見ていないときだけ，続けて鳴りすぎないように間隔をあける。
+  Future<void> _notifyEncounterIfNeeded() async {
+    final isBackground =
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed;
+    final isPocket = ref.read(powerModeProvider) == PowerMode.pocket;
+    if (!isBackground && !isPocket) return;
+
+    final now = DateTime.now();
+    final last = _lastEncounterNotifiedAt;
+    if (last != null && now.difference(last) < _encounterNotifyInterval) {
+      debugPrint('すれ違い通知を間引きました（前回から${now.difference(last).inSeconds}秒）');
+      return;
+    }
+
+    final pending =
+        ref.read(encounterNotifierProvider).asData?.value ?? const [];
+    final myTechStack = ref.read(authNotifierProvider).value?.techStack ?? '';
+    final text = encounterNotificationText(
+      pending: pending,
+      myTechStack: myTechStack,
+    );
+    _lastEncounterNotifiedAt = now;
+    await ref
+        .read(notificationServiceProvider)
+        .showStreetPassNotification(title: text.title, body: text.body);
+  }
+
   /// すれ違い確定時の処理
   Future<void> _handleEncounterConfirmed(String ephemeralId) async {
     // TODO(Future Work): オフライン完全対応のための改修
@@ -344,14 +375,12 @@ class BleNotifier extends Notifier<BleState> with WidgetsBindingObserver {
         );
         await _detectNewlyUnlockedAchievements(myId, encounterRepo);
         await ref.read(encounterNotifierProvider.notifier).refresh();
-      }
 
-      // [Phase 4] バックグラウンド動作時のローカル通知
-      final isBackground =
-          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed;
-      if (isBackground && !_hasNotifiedInBackground) {
-        ref.read(notificationServiceProvider).showStreetPassNotification();
-        _hasNotifiedInBackground = true;
+        // すれ違いの通知。
+        // アプリを閉じているときに加えて，iPhone のポケットモード中も出す。
+        // ポケットモードはアプリを開いたまま画面を暗くしているので，
+        // 以前は「アプリを開いている」扱いになり通知が出ていなかった。
+        await _notifyEncounterIfNeeded();
       }
 
       // 1日後に気づかなかった場合のリマインダーをセット
