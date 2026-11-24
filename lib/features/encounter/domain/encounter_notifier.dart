@@ -99,9 +99,17 @@ class EncounterNotifier extends AsyncNotifier<List<EncounterModel>> {
   }
 
   /// サーバーから未確認すれ違いデータを再取得する
+  ///
+  /// すでに一覧を持っているときは読み込み中にしない。
+  /// 読み込み中にするとすれ違い結果画面が一瞬読み込み表示に切り替わり，
+  /// 新しくすれ違うたびに画面が点滅して，見ていた人も最初に戻ってしまうため。
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(_fetchPendingEncounters);
+    final previous = state.value;
+    if (previous == null) state = const AsyncValue.loading();
+    final next = await AsyncValue.guard(_fetchPendingEncounters);
+    state = next.hasError && previous != null
+        ? AsyncValue.data(previous)
+        : next;
   }
 
   /// 「確認した！」ボタンが押された時の処理

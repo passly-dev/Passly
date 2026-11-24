@@ -84,14 +84,19 @@ class NotificationService {
     return const NotificationDetails(android: androidDetails, iOS: iosDetails);
   }
 
-  /// バックグラウンドでの初回すれ違い検知時に呼ばれる（即時発火）
-  Future<void> showStreetPassNotification() async {
+  /// すれ違いを検知したときに呼ばれる（即時発火）。
+  ///
+  /// 同じ ID で出すので，前の通知は最新の人数と内容に置き換わる。
+  Future<void> showStreetPassNotification({
+    required String title,
+    required String body,
+  }) async {
     await initialize();
-    debugPrint('[NotificationService] 🔔 すれ違いを検知しました！（バックグラウンド即時通知）');
+    debugPrint('[NotificationService] 🔔 すれ違い通知: $title / $body');
     await _plugin.show(
       id: 0,
-      title: 'すれ違いを検知しました！',
-      body: '新しいすれ違いデータがあります。アプリを開いて確認してください。',
+      title: title,
+      body: body,
       notificationDetails: _getDetails(),
     );
   }
@@ -113,8 +118,9 @@ class NotificationService {
   /// すれ違いがある状態で1日アプリを開かなかった場合に発火するスケジュール通知
   Future<void> scheduleEncounterReminder() async {
     await initialize();
-    final scheduledTime = tz.TZDateTime.now(tz.local)
-        .add(const Duration(days: 1));
+    final scheduledTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(const Duration(days: 1));
     debugPrint(
       '[NotificationService] ⏰ 1日後のすれ違いリマインダーをスケジュールしました: $scheduledTime',
     );

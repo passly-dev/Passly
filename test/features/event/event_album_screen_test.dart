@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:passly/features/event/domain/event_album_notifier.dart';
 import 'package:passly/features/event/domain/favorite_next_events.dart';
 import 'package:passly/features/event/presentation/event_album_screen.dart';
@@ -133,5 +134,49 @@ void main() {
     ], today: DateTime(2026, 11, 7));
     expect(groups.map((g) => g.event.title), ['技育展2026 本選', 'もくもく会']);
     expect(groups.first.users.map((u) => u.name), ['B', 'C']);
+  });
+
+  testWidgets('参加中のイベントを押すと connpass ではなくイベント詳細を開く', (tester) async {
+    tester.view.physicalSize = const Size(412, 915);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final today = EventSummary(
+      id: 42,
+      name: 'MEET STAGE',
+      startAt: DateTime(2026, 11, 8, 13),
+      location: '',
+      imageUrl: '',
+      url: 'https://example.com/today',
+    );
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const EventAlbumScreen()),
+        GoRoute(
+          path: '/events/:id',
+          builder: (_, state) => Text('イベント詳細 ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          eventAlbumProvider.overrideWith(
+            (ref) async =>
+                EventAlbum(today: today, upcoming: const [], past: const []),
+          ),
+          favoriteNextEventsProvider.overrideWith((ref) async => const []),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.text('参加中'));
+    await tester.pumpAndSettle();
+    expect(find.text('イベント詳細 42'), findsOneWidget);
   });
 }

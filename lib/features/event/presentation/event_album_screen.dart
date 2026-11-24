@@ -245,8 +245,12 @@ class _ComingCard extends StatelessWidget {
     return '$date$time';
   }
 
+  /// 参加中のイベントは，その場ですれ違った人の一覧（イベント詳細）を開く。
+  /// 参加予定やお気に入りの人の予定はまだ出会っていないので connpass を開く。
   void _open(BuildContext context) {
-    if (item.url.isNotEmpty) {
+    if (item.kind == _ComingKind.now && item.event != null) {
+      _openEvent(context, item.event!);
+    } else if (item.url.isNotEmpty) {
       _openUrl(item.url);
     } else if (item.event != null) {
       _openEvent(context, item.event!);

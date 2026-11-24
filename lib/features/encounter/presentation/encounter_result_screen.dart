@@ -72,8 +72,35 @@ class _EncounterCardStack extends StatefulWidget {
 class _EncounterCardStackState extends State<_EncounterCardStack> {
   int _currentIndex = 0;
 
+  /// 表示する順番。見ている間に新しくすれ違った人は後ろに足す。
+  ///
+  /// サーバーの並び順のまま差し替えると，新しい人が前に入ったときに
+  /// 見ていた人が入れ替わったり，見ないまま飛ばされる人が出たりするため。
+  late List<EncounterModel> _items = widget.encounters;
+
+  @override
+  void didUpdateWidget(covariant _EncounterCardStack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (identical(oldWidget.encounters, widget.encounters)) return;
+    final latest = {for (final e in widget.encounters) e.encounteredUser.id: e};
+    final kept = [
+      for (final e in _items)
+        if (latest.containsKey(e.encounteredUser.id))
+          latest[e.encounteredUser.id]!,
+    ];
+    final keptIds = kept.map((e) => e.encounteredUser.id).toSet();
+    _items = [
+      ...kept,
+      for (final e in widget.encounters)
+        if (!keptIds.contains(e.encounteredUser.id)) e,
+    ];
+    if (_currentIndex >= _items.length) {
+      _currentIndex = _items.isEmpty ? 0 : _items.length - 1;
+    }
+  }
+
   void _nextCard() {
-    if (_currentIndex < widget.encounters.length - 1) {
+    if (_currentIndex < _items.length - 1) {
       setState(() {
         _currentIndex++;
       });
@@ -88,18 +115,18 @@ class _EncounterCardStackState extends State<_EncounterCardStack> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.encounters.isEmpty) {
+    if (_items.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go('/home');
       });
       return const SizedBox.shrink();
     }
-    if (_currentIndex >= widget.encounters.length) {
+    if (_currentIndex >= _items.length) {
       return const SizedBox.shrink();
     }
 
-    final encounter = widget.encounters[_currentIndex];
-    final total = widget.encounters.length;
+    final encounter = _items[_currentIndex];
+    final total = _items.length;
     final isLast = _currentIndex == total - 1;
     // 今の人を除いた残りの人数
     final remaining = total - _currentIndex - 1;
