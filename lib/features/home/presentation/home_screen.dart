@@ -99,11 +99,24 @@ class HomeScreen extends ConsumerWidget {
           // ナビとその上のポケットモードボタンに最後のカードが隠れないようにする
           bottom: 180,
         ),
-        children: isLoading
-            ? const [LoadingCardsSkeleton()]
-            : _buildCommonTagSections(context, ref, todayEncounters),
+        children: [
+          // アイコンがまだないときは，顔が分かる写真をすすめる
+          if (!isLoading && !FeatureFlags.demoMode && _hasNoIcon(ref)) ...[
+            const IconPhotoBanner(),
+            const SizedBox(height: PasslySpace.s24),
+          ],
+          ...isLoading
+              ? const [LoadingCardsSkeleton()]
+              : _buildCommonTagSections(context, ref, todayEncounters),
+        ],
       ),
     );
+  }
+
+  /// ログイン中のユーザーがアイコンを設定していないか。
+  bool _hasNoIcon(WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider).value;
+    return user != null && user.iconUrl.trim().isEmpty;
   }
 
   /// 「いちばん共通点が多い人」の大きいカードと「ほかに共通点のある人」一覧。
@@ -210,6 +223,66 @@ class HomeScreen extends ConsumerWidget {
             child: const Text('再試行', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// アイコンがまだない人に，顔が分かる写真をすすめるカード。
+///
+/// 11/8 のテストで「名前と顔が一致せず，誰がどの人か分からない」という声があったため。
+/// 押すとプロフィール編集を開く。アイコンを設定すると出なくなる。
+class IconPhotoBanner extends StatelessWidget {
+  const IconPhotoBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PasslyBrand.primarySurface,
+      borderRadius: BorderRadius.circular(PasslyRadius.lg),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(PasslyRadius.lg),
+        onTap: () => context.push('/mypage/edit'),
+        child: const Padding(
+          padding: EdgeInsets.all(PasslySpace.s16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.add_a_photo_rounded,
+                color: PasslyBrand.primaryDark,
+                size: 28,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'アイコンを顔写真にしよう',
+                      style: TextStyle(
+                        fontFamily: PasslyFont.family,
+                        color: PasslyBrand.primaryDark,
+                        fontSize: 15,
+                        fontWeight: PasslyFont.bold,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      '会場ですれ違った人に見つけてもらえます',
+                      style: TextStyle(
+                        fontFamily: PasslyFont.family,
+                        color: PasslyText.secondary,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: PasslyBrand.primaryDark),
+            ],
+          ),
+        ),
       ),
     );
   }
