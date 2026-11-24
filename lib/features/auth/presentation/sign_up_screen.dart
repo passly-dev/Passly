@@ -193,7 +193,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   List<Widget> _stepTitle() {
     final (title, sub) = switch (_step) {
       0 => ('メールとパスワード', 'ログインに使います．ほかの人には見えません．'),
-      1 => ('すれ違った人に見せる名前', 'あとからマイページで変えられます．'),
+      1 => ('すれ違った人に見せる名前', '会場で「あの人だ」と分かる名前にしましょう．あとからマイページで変えられます．'),
       _ => ('connpassとつなぐ', '参加したイベントが自動でイベント画面に入り，お気に入りの人の予定も見られます．'),
     };
     return [
@@ -287,6 +287,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       controller: _nameController,
       label: '表示名',
       hint: 'パスリー たろう',
+      help: 'イベントの名札やconnpassで使っている名前がおすすめです',
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.nickname],
       onChanged: (_) => _clearErrorIfNeeded(),
