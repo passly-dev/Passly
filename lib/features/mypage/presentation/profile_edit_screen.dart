@@ -356,6 +356,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     onEditCover: _pickCover,
                     onEditAvatar: _pickAvatar,
                   ),
+                  if ((user?.iconUrl ?? '').isEmpty && _localAvatarPath == null)
+                    const _IconPhotoTip(),
                   const SizedBox(height: 12),
                   const _Heading('基本'),
                   _Card(
@@ -364,6 +366,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         label: '名前',
                         controller: _name,
                         max: _nameMax,
+                        hint: '例：パスリー たろう',
+                        help: 'イベントの名札やconnpassで使っている名前にすると，会場で見つけてもらいやすくなります',
                       ),
                       _LabeledField(
                         label: '所属',
@@ -766,6 +770,9 @@ class _LabeledField extends StatelessWidget {
   final TextEditingController controller;
   final int? max;
   final String? hint;
+
+  /// 入力欄の下に出す説明。
+  final String? help;
   final String? prefix;
   final int maxLines;
   final TextInputType? keyboardType;
@@ -775,6 +782,7 @@ class _LabeledField extends StatelessWidget {
     required this.controller,
     this.max,
     this.hint,
+    this.help,
     this.prefix,
     this.maxLines = 1,
     this.keyboardType,
@@ -876,7 +884,43 @@ class _LabeledField extends StatelessWidget {
             ),
           ),
         ),
+        if (help != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            help!,
+            style: const TextStyle(
+              fontFamily: PasslyFont.family,
+              color: PasslyText.tertiary,
+              fontSize: 11,
+              height: 1.5,
+            ),
+          ),
+        ],
       ],
+    );
+  }
+}
+
+/// アイコンがまだないときに，顔が分かる写真をすすめる一言。
+///
+/// 11/8 のテストで「名前と顔が一致せず，誰がどの人か分からない」という声があったため。
+class _IconPhotoTip extends StatelessWidget {
+  const _IconPhotoTip();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: Text(
+        '顔が分かる写真をアイコンにすると，すれ違った人が会場であなたを見つけやすくなります',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: PasslyFont.family,
+          color: PasslyText.secondary,
+          fontSize: 12,
+          height: 1.5,
+        ),
+      ),
     );
   }
 }
