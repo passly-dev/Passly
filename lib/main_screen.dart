@@ -19,6 +19,8 @@ import 'package:passly/features/settings/domain/settings_notifier.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/encounter/domain/encounter_notifier.dart';
 import 'package:passly/features/encounter/domain/encounter_model.dart';
+import 'package:passly/features/encounter/presentation/widgets/encounter_banner.dart';
+import 'package:passly/features/notification/encounter_notification_text.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/features/ble/domain/power_mode_notifier.dart';
 
@@ -58,13 +60,8 @@ class _MainScreenState extends ConsumerState<MainScreen>
     // 起動時の電源モード（☀️ 通常 / 🌙 ポケット）に応じて近接センサー監視を初期化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncProximitySensorWithMode();
-      if (!mounted) return;
-      _routerDelegate = GoRouter.of(context).routerDelegate
-        ..addListener(_onRouteChanged);
     });
   }
-
-  GoRouterDelegate? _routerDelegate;
 
   /// 現在の電源モード（☀️ 通常 / 🌙 ポケット）に応じて近接センサー監視を同期する
   ///
@@ -114,7 +111,6 @@ class _MainScreenState extends ConsumerState<MainScreen>
   void dispose() {
     // アプリ完全終了時にBLEおよび近接センサーを停止
     WidgetsBinding.instance.removeObserver(this);
-    _routerDelegate?.removeListener(_onRouteChanged);
     _stopProximitySensor();
     WakelockPlus.disable();
     _stopBle();
@@ -133,7 +129,7 @@ class _MainScreenState extends ConsumerState<MainScreen>
           ref.read(bleNotifierProvider.notifier).resumeAdvertising();
         }
         _checkBatteryOptimizationOnce();
-        _navigateToEncounterIfPending(reason: 'app_resumed');
+        _openEncounterResultIfPending(reason: 'app_resumed');
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
@@ -277,64 +273,80 @@ class _MainScreenState extends ConsumerState<MainScreen>
   String _currentLocation() =>
       GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
 
-  /// 見送ったときの未確認の人数。同じ人数で何度もお知らせを出さないために使う。
-  int _deferredPendingCount = 0;
+  /// 上から下りてくる「新しくすれ違いました」のバナーを出しているか。
+  bool _isBannerVisible = false;
 
-  void _navigateToEncounterIfPending({required String reason}) {
+  /// 起動後に未確認のすれ違いを一度確かめたか（起動時だけ結果画面を自動で開く）。
+  bool _checkedPendingAtLaunch = false;
+
+  /// 起動したときと，アプリに戻ってきたときだけ，結果画面を自動で開く。
+  ///
+  /// アプリを開いたまますれ違ったときは画面を切り替えず，バナーで知らせる
+  /// （[_showEncounterBanner]）。11/8 のテストで「操作中に画面が切り替わる」
+  /// という声があったため。
+  void _openEncounterResultIfPending({required String reason}) {
     if (!mounted) return;
 
     final pending =
         ref.read(encounterNotifierProvider).asData?.value ?? const [];
-    if (pending.isEmpty) {
-      debugPrint('すれ違い結果遷移スキップ: pending=0 (reason=$reason)');
-      return;
-    }
+    if (pending.isEmpty) return;
 
     final location = _currentLocation();
-    if (location == '/encounter-result') {
-      debugPrint(
-        'すれ違い結果遷移スキップ: 既に表示中 (reason=$reason, pending=${pending.length})',
-      );
-      return;
-    }
+    if (location == '/encounter-result') return;
 
-    // ダイアログやシートを開いている間も切り替えない（閉じたあとに切り替える）
+    // 操作中の画面やダイアログの上では切り替えず，バナーで知らせる
     final isCovered = !(ModalRoute.isCurrentOf(context) ?? true);
     if (!_autoOpenLocations.contains(location) || isCovered) {
-      debugPrint('すれ違い結果遷移を見送り: 操作中の画面 (reason=$reason, from=$location)');
-      _showDeferredEncounterNotice(pending.length);
+      debugPrint('すれ違い結果を自動で開かずバナーにする (reason=$reason, from=$location)');
+      _showEncounterBanner();
       return;
     }
 
     debugPrint(
       'すれ違い結果へ遷移: reason=$reason, pending=${pending.length}, from=$location',
     );
-    _deferredPendingCount = 0;
+    _hideEncounterBanner();
     context.go('/encounter-result');
   }
 
-  /// 操作中の画面の下に「すれ違った人がいる」ことを小さく出す。
-  /// 画面を閉じてタブの一覧に戻ったときに，すれ違い結果画面へ切り替える。
-  void _showDeferredEncounterNotice(int pendingCount) {
-    if (pendingCount <= _deferredPendingCount) return;
-    _deferredPendingCount = pendingCount;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text('新しく$pendingCount人とすれ違いました．この画面を閉じると表示します'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+  void _showEncounterBanner() {
+    if (!mounted) return;
+    HapticFeedback.lightImpact();
+    if (!_isBannerVisible) setState(() => _isBannerVisible = true);
   }
 
-  /// 画面が切り替わったら，見送っていたすれ違い結果を出せるか確かめる。
-  void _onRouteChanged() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _navigateToEncounterIfPending(reason: 'route_changed');
-    });
+  void _hideEncounterBanner() {
+    if (!mounted || !_isBannerVisible) return;
+    setState(() => _isBannerVisible = false);
+  }
+
+  void _openEncounterResultFromBanner() {
+    _hideEncounterBanner();
+    context.go('/encounter-result');
+  }
+
+  Widget _buildEncounterBanner(List<EncounterModel> pending) {
+    final me = ref.watch(authNotifierProvider).value;
+    final text = encounterNotificationText(
+      pending: pending,
+      myTechStack: me?.techStack ?? '',
+    );
+    final latestFirst = [...pending]
+      ..sort((a, b) => b.encounteredAt.compareTo(a.encounteredAt));
+    final title = pending.length >= 2
+        ? '新しく${pending.length}人とすれ違いました'
+        : text.title.replaceAll('！', '');
+    return EncounterBanner(
+      visible: _isBannerVisible && pending.isNotEmpty,
+      title: title,
+      body: text.body,
+      people: [
+        for (final e in latestFirst.take(2))
+          (iconUrl: e.encounteredUser.iconUrl, name: e.encounteredUser.name),
+      ],
+      onOpen: _openEncounterResultFromBanner,
+      onDismiss: _hideEncounterBanner,
+    );
   }
 
   @override
@@ -361,8 +373,12 @@ class _MainScreenState extends ConsumerState<MainScreen>
       final hasNewPending = nextCount > prevCount;
       if (!hasNewPending) return;
 
+      // 起動直後の読み込みは「増えた」に数えない（起動時は結果画面を開く）
+      if (previous?.hasValue != true) return;
+
       debugPrint('未確認すれ違い増加を検知: $prevCount -> $nextCount');
-      _navigateToEncounterIfPending(reason: 'pending_increased');
+      // アプリを開いたまますれ違ったときは，画面を切り替えずにバナーで知らせる
+      _showEncounterBanner();
     });
 
     ref.listen<BleState>(bleNotifierProvider, (previous, next) {
@@ -394,12 +410,15 @@ class _MainScreenState extends ConsumerState<MainScreen>
     });
 
     final pendingState = ref.watch(encounterNotifierProvider);
-    final pendingCount = pendingState.asData?.value.length ?? 0;
-    // 未確認のすれ違い結果が存在する場合のみ、UI描画後に結果画面へ遷移
-    if (pendingCount > 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _navigateToEncounterIfPending(reason: 'build_completed');
-      });
+    final pending = pendingState.asData?.value ?? const <EncounterModel>[];
+    // 起動して最初に未確認のすれ違いを読み込めたときだけ，結果画面を自動で開く
+    if (pendingState.hasValue && !_checkedPendingAtLaunch) {
+      _checkedPendingAtLaunch = true;
+      if (pending.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _openEncounterResultIfPending(reason: 'launch');
+        });
+      }
     }
 
     // ホーム画面右上の電源モードトグル（☀️ 通常使用 / 🌙 ポケット中）の変更を検知して近接センサー監視を即時切り替え
@@ -434,6 +453,13 @@ class _MainScreenState extends ConsumerState<MainScreen>
         ),
         // ポケットモードの切り替え（iOS のホームだけ。右端から 16、ナビの上端から 16 上）。
         // ナビの Stack の外にはみ出して置くとタップが届かないので、画面全体の Stack に置く。
+        // アプリを開いたまますれ違ったときのバナー（上から下りてくる）
+        Positioned(
+          top: MediaQuery.paddingOf(context).top + 8,
+          left: 15,
+          right: 15,
+          child: _buildEncounterBanner(pending),
+        ),
         if (showPocketModeButton)
           Positioned(
             right: 16,
