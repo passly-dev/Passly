@@ -13,6 +13,15 @@ final encounterNotifierProvider =
       EncounterNotifier.new,
     );
 
+/// 未確認のすれ違いの顔ぶれ（相手の ID をつないだもの）。読み込み中は null。
+///
+/// 新しくすれ違ったときや「確認した」を押したときに変わるので，
+/// ホームなどほかの画面はこれを見て一覧を取り直す。
+final pendingEncounterKeyProvider = Provider<String?>((ref) {
+  final list = ref.watch(encounterNotifierProvider).asData?.value;
+  return list?.map((e) => e.encounteredUser.id).join(',');
+});
+
 /// すれ違いデータの取得・確認・BLE検知後の処理を管理するNotifier
 class EncounterNotifier extends AsyncNotifier<List<EncounterModel>> {
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:passly/features/home/data/home_repository.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
 
 /// ホーム画面のデータ状態
@@ -69,6 +70,14 @@ class HomeNotifier extends AsyncNotifier<HomeState> {
     ref.watch(
       authNotifierProvider.select((s) => s.value?.id),
     ); // ユーザー切替時に状態を作り直す
+
+    // アプリを開いたまますれ違ったら，下に引っぱらなくても一覧を取り直す。
+    // 未確認のすれ違いの顔ぶれが変わったとき（新しくすれ違った・確認した）に動く。
+    ref.listen<String?>(pendingEncounterKeyProvider, (previous, next) {
+      if (previous == null || next == null || previous == next) return;
+      refresh();
+    });
+
     return await _fetchHomeData();
   }
 
@@ -90,9 +99,15 @@ class HomeNotifier extends AsyncNotifier<HomeState> {
   }
 
   /// データを再取得
+  ///
+  /// すでに表示しているときは読み込み中にしない（読み込み表示に切り替わって点滅しないように）。
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(_fetchHomeData);
+    final previous = state.value;
+    if (previous == null) state = const AsyncValue.loading();
+    final next = await AsyncValue.guard(_fetchHomeData);
+    state = next.hasError && previous != null
+        ? AsyncValue.data(previous)
+        : next;
   }
 
   /// すれ違い保存成功時に、表示カウントを即時に+1する
