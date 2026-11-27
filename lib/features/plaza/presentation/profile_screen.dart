@@ -12,6 +12,7 @@ import 'package:passly/core/constants/app_colors.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
+import 'package:passly/features/memo/presentation/partner_memo_corner.dart';
 import 'package:passly/features/user/data/user_repository.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
 import 'package:passly/features/user/domain/user_model.dart';
@@ -94,7 +95,7 @@ class _ProfileBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _CoverAndAvatar(profile: profile),
+          _CoverAndAvatar(userId: userId, profile: profile),
           const SizedBox(height: 16),
           _NameSection(profile: profile),
           const SizedBox(height: 12),
@@ -134,9 +135,10 @@ class _CoverAndAvatar extends StatelessWidget {
   static const double _coverHeight = 190;
   static const double _avatarSize = 100;
 
+  final String userId;
   final UserModel profile;
 
-  const _CoverAndAvatar({required this.profile});
+  const _CoverAndAvatar({required this.userId, required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -165,9 +167,35 @@ class _CoverAndAvatar extends StatelessWidget {
             right: 0,
             child: Center(child: _Avatar(iconUrl: profile.iconUrl)),
           ),
+          // 自分にだけ見える付箋メモ。カバーの右下に貼る。
+          Positioned(
+            top: _coverHeight - 66,
+            right: 14,
+            child: PartnerMemoCorner(
+              userId: userId,
+              longDateLabel: _longDateLabel(),
+              shortDateLabel: _shortDateLabel(),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  /// 付箋を書く画面の日付（例: 3月11日 SysHack2026）。
+  String _longDateLabel() {
+    final last = profile.lastEncounter;
+    if (last == null) return '';
+    final d = AppTime.toAppLocal(last.metAt);
+    return '${d.month}月${d.day}日 ${last.eventName.trim()}'.trim();
+  }
+
+  /// 貼った付箋の日付（例: 3/11）。
+  String _shortDateLabel() {
+    final last = profile.lastEncounter;
+    if (last == null) return '';
+    final d = AppTime.toAppLocal(last.metAt);
+    return '${d.month}/${d.day}';
   }
 
   Widget _buildCover() {
