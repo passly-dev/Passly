@@ -2,12 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/memo/domain/partner_memo.dart';
 
-/// 付箋で使う文字。見出しは手書き風，本文は丸ゴシック（どちらも OFL）。
+/// 付箋で使う文字。見出しは手書き風（OFL），本文はアプリの文字。
 abstract final class MemoFont {
   static const String title = 'Hachi Maru Pop';
-  static const String body = 'Zen Maru Gothic';
+  static const String body = PasslyFont.family;
   static const Color ink = Color(0xFF5B4A3A);
   static const Color inkLight = Color(0xFF9A8A78);
 }
