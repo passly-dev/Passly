@@ -1,13 +1,15 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/memo/domain/partner_memo.dart';
 
-/// 付箋で使う文字。見出しは手書き風（OFL），本文はアプリの文字。
+/// 付箋で使う文字。見出しも本文もアプリの文字にそろえ，見出しは太字にする。
 abstract final class MemoFont {
-  static const String title = 'Hachi Maru Pop';
+  static const String title = PasslyFont.family;
+  static const FontWeight titleWeight = PasslyFont.bold;
   static const String body = PasslyFont.family;
   static const Color ink = Color(0xFF5B4A3A);
   static const Color inkLight = Color(0xFF9A8A78);
@@ -27,6 +29,9 @@ class StickyPaper extends StatelessWidget {
 
   /// テープの見え方（0〜1）。貼った直後に遅れて乗せるのに使う。
   final double tapeOpacity;
+
+  /// 右下の角からめくれている量（0〜1）。0 ならめくれていない。
+  final double curl;
   final Widget child;
 
   const StickyPaper({
@@ -39,6 +44,7 @@ class StickyPaper extends StatelessWidget {
     this.foldSize = 14,
     this.tapeSize = const Size(40, 14),
     this.tapeOpacity = 1,
+    this.curl = 0,
     required this.child,
   });
 
@@ -54,16 +60,18 @@ class StickyPaper extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.only(top: tapeTop),
-            child: CustomPaint(
-              painter: _PaperPainter(
-                color: color,
-                radius: radius,
-                foldSize: foldSize,
-              ),
-              child: SizedBox(
-                width: width,
-                height: height,
-                child: Padding(padding: padding, child: child),
+            child: _curled(
+              CustomPaint(
+                painter: _PaperPainter(
+                  color: color,
+                  radius: radius,
+                  foldSize: curl > 0 ? 0 : foldSize,
+                ),
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: Padding(padding: padding, child: child),
+                ),
               ),
             ),
           ),
@@ -83,6 +91,170 @@ class StickyPaper extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on StickyPaper {
+  Widget _curled(Widget paper) {
+    if (curl <= 0) return paper;
+    final geo = _CurlGeometry(curl);
+    return CustomPaint(
+      foregroundPainter: _CurlPainter(geo, color, radius),
+      child: ClipPath(clipper: _CurlClipper(geo, radius), child: paper),
+    );
+  }
+}
+
+/// 右下の角を左上へ折り返したときの形。
+///
+/// 角 C が C' へ動くとして，折り目は C と C' の垂直二等分線。
+/// 折り目より角の側の紙を，折り目で裏返した位置に「裏側」として描く。
+class _CurlGeometry {
+  final double amount;
+  const _CurlGeometry(this.amount);
+
+  /// めくれていく向き（右下 → 左上，少し上より）。
+  static final Offset _dir = () {
+    const d = Offset(-0.75, -1);
+    return d / d.distance;
+  }();
+
+  /// 折り目の中点と向き。
+  ({Offset mid, Offset dir, Offset corner, Offset tip}) solve(Size size) {
+    final corner = Offset(size.width, size.height);
+    // 紙のいちばん遠い点（左上）までの長さ。
+    final reach = -(corner.dx * _dir.dx + corner.dy * _dir.dy);
+    final travel = 2 * reach * amount;
+    final tip = corner + _dir * travel;
+    return (mid: (corner + tip) / 2, dir: _dir, corner: corner, tip: tip);
+  }
+
+  /// 折り目より角の側（めくれて裏返る部分）の半平面。
+  Path cornerSide(Size size) {
+    final g = solve(size);
+    final n = g.dir;
+    final along = Offset(-n.dy, n.dx);
+    const far = 2000.0;
+    return Path()
+      ..moveTo(g.mid.dx + along.dx * far, g.mid.dy + along.dy * far)
+      ..lineTo(g.mid.dx - along.dx * far, g.mid.dy - along.dy * far)
+      ..lineTo(
+        g.mid.dx - along.dx * far - n.dx * far,
+        g.mid.dy - along.dy * far - n.dy * far,
+      )
+      ..lineTo(
+        g.mid.dx + along.dx * far - n.dx * far,
+        g.mid.dy + along.dy * far - n.dy * far,
+      )
+      ..close();
+  }
+
+  /// 折り目で裏返す行列。
+  Float64List reflect(Size size) {
+    final g = solve(size);
+    final n = g.dir;
+    final m = g.mid;
+    // p' = p - 2 ((p - m)・n) n
+    final a = 1 - 2 * n.dx * n.dx;
+    final b = -2 * n.dx * n.dy;
+    final d = 1 - 2 * n.dy * n.dy;
+    final k = 2 * (m.dx * n.dx + m.dy * n.dy);
+    final tx = k * n.dx;
+    final ty = k * n.dy;
+    return Float64List.fromList([
+      a, b, 0, 0, //
+      b, d, 0, 0, //
+      0, 0, 1, 0, //
+      tx, ty, 0, 1,
+    ]);
+  }
+}
+
+Path _paperShape(Size size, double radius) => Path()
+  ..addRRect(
+    RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),
+  );
+
+class _CurlClipper extends CustomClipper<Path> {
+  final _CurlGeometry geo;
+  final double radius;
+  _CurlClipper(this.geo, this.radius);
+
+  @override
+  Path getClip(Size size) => Path.combine(
+    PathOperation.difference,
+    Path()..addRect((Offset.zero & size).inflate(20)),
+    geo.cornerSide(size),
+  );
+
+  @override
+  bool shouldReclip(_CurlClipper old) => old.geo.amount != geo.amount;
+}
+
+class _CurlPainter extends CustomPainter {
+  final _CurlGeometry geo;
+  final MemoColor color;
+  final double radius;
+  _CurlPainter(this.geo, this.color, this.radius);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final g = geo.solve(size);
+    final paper = _paperShape(size, radius);
+    final removed = Path.combine(
+      PathOperation.intersect,
+      paper,
+      geo.cornerSide(size),
+    );
+    final flap = removed.transform(geo.reflect(size));
+    final flapOnPaper = flap;
+
+    // 折り目のすぐ内側に落ちる影（紙が浮いて見える）。
+    final shadeBand = Path.combine(
+      PathOperation.intersect,
+      Path.combine(PathOperation.difference, paper, geo.cornerSide(size)),
+      Path()..addRect(Offset.zero & size),
+    );
+    canvas.save();
+    canvas.clipPath(shadeBand);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.black.withValues(alpha: 0),
+            Colors.black.withValues(alpha: 0.12 * (1 - geo.amount * 0.5)),
+          ],
+          stops: const [0.55, 1],
+        ).createShader(Rect.fromPoints(g.mid + g.dir * 40, g.mid)),
+    );
+    canvas.restore();
+
+    // めくれた紙の影と裏側。
+    canvas.drawShadow(flapOnPaper, const Color(0xFF000000), 6, false);
+    final back = Color.lerp(color.paper, Colors.white, 0.55)!;
+    canvas.drawPath(
+      flapOnPaper,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [Color.lerp(color.fold, back, 0.2)!, back, back],
+          stops: const [0, 0.35, 1],
+        ).createShader(Rect.fromPoints(g.mid, g.tip)),
+    );
+    // 折り目の線をうっすら。
+    canvas.drawPath(
+      flapOnPaper,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.6
+        ..color = color.fold.withValues(alpha: 0.6),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CurlPainter old) =>
+      old.geo.amount != geo.amount || old.color != color;
 }
 
 class _PaperPainter extends CustomPainter {
@@ -243,6 +415,7 @@ class StuckMemoNote extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontFamily: MemoFont.title,
+                fontWeight: MemoFont.titleWeight,
                 fontSize: 11,
                 height: 1.3,
                 color: MemoFont.ink,
@@ -303,6 +476,7 @@ class MiniMemoNote extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: MemoFont.title,
+              fontWeight: MemoFont.titleWeight,
               fontSize: 8,
               height: 1.2,
               color: MemoFont.ink,
@@ -432,6 +606,7 @@ class _BlankMemoPadState extends State<BlankMemoPad>
                         'メモ',
                         style: TextStyle(
                           fontFamily: MemoFont.title,
+                          fontWeight: MemoFont.titleWeight,
                           fontSize: 8,
                           height: 1.1,
                           color: MemoFont.ink,

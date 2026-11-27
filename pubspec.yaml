@@ -98,12 +98,6 @@ flutter:
     - assets/tags/
     - assets/sns/
 
-  # 付箋メモの見出しの文字（SIL Open Font License，assets/fonts/OFL-HachiMaruPop.txt）
-  fonts:
-    - family: Hachi Maru Pop
-      fonts:
-        - asset: assets/fonts/HachiMaruPop-Regular.ttf
-
 flutter_launcher_icons:
   image_path: "assets/images/app_icon.png"
   ios: true

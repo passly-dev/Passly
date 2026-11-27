@@ -18,7 +18,7 @@ PartnerMemo _memo({String title = 'メガネの面白い人', String body = 'Flu
     );
 
 Future<void> _settle(WidgetTester tester) async {
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 40; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }
 }
