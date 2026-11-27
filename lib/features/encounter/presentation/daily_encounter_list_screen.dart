@@ -10,6 +10,7 @@ import 'package:passly/core/constants/app_colors.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/calendar/domain/calendar_notifier.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
+import 'package:passly/features/memo/domain/partner_memo.dart';
 
 /// 指定日のすれ違い相手一覧画面。
 ///
@@ -124,6 +125,7 @@ class _DailyEncounterListScreenState
                           name: p.name,
                           iconUrl: p.iconUrl,
                           commonTags: tagsOf(p),
+                          memo: ref.watch(partnerMemoProvider(p.userId)),
                           onTap: () => context.push('/profile/${p.userId}'),
                         ),
                       ),

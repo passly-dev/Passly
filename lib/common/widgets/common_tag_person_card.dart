@@ -5,6 +5,8 @@ import 'package:passly/common/widgets/passly_icon.dart';
 import 'package:passly/common/widgets/press_feedback.dart';
 import 'package:passly/common/widgets/tag_sticker.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
+import 'package:passly/features/memo/domain/partner_memo.dart';
+import 'package:passly/features/memo/presentation/sticky_note.dart';
 
 /// 共通タグ付きの「すれ違った人」1 件分のカード。
 ///
@@ -26,6 +28,9 @@ class CommonTagPersonCard extends StatelessWidget {
   final List<String>? allTags;
 
   final bool isFavorite;
+
+  /// 自分が貼った付箋メモ。あれば右に小さい付箋を出す。
+  final PartnerMemo? memo;
   final VoidCallback? onTap;
 
   const CommonTagPersonCard({
@@ -36,6 +41,7 @@ class CommonTagPersonCard extends StatelessWidget {
     this.allTags,
     this.subtitle,
     this.isFavorite = false,
+    this.memo,
     this.onTap,
   });
 
@@ -120,6 +126,10 @@ class CommonTagPersonCard extends StatelessWidget {
               ],
             ),
           ),
+          if (memo != null) ...[
+            const SizedBox(width: 6),
+            MiniMemoNote(memo: memo!),
+          ],
           const SizedBox(width: 8),
           const PasslyIcon(
             asset: PasslyIcons.chevron,
