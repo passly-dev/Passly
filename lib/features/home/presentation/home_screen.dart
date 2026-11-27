@@ -7,6 +7,7 @@ import 'package:passly/common/widgets/common_tag_chip.dart';
 import 'package:passly/common/widgets/common_tag_person_card.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
 import 'package:passly/common/widgets/passly_header.dart';
+import 'package:passly/common/widgets/passly_refresh.dart';
 import 'package:passly/core/constants/app_colors.dart';
 import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
@@ -113,9 +114,11 @@ class HomeScreen extends ConsumerWidget {
   }) {
     final todayEncounters = _uniqueByUser(_filterToday(data.recentEncounters));
 
-    return RefreshIndicator(
-      color: PasslyBrand.primary,
+    return PasslyRefresh(
       onRefresh: () => ref.read(homeNotifierProvider.notifier).refresh(),
+      // 一覧が戻ってから未確認のすれ違いを取り直す。増えていれば
+      // アプリを開いたまますれ違ったときと同じ通知が上から下りてくる
+      onDone: () => ref.read(encounterNotifierProvider.notifier).refresh(),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(

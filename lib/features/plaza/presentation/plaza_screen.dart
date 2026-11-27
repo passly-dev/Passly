@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:passly/common/widgets/passly_refresh.dart';
+import 'package:passly/features/encounter/domain/encounter_notifier.dart';
 import 'package:passly/common/widgets/common_tag_person_card.dart';
 import 'package:passly/common/widgets/passly_header.dart';
 import 'package:passly/common/widgets/passly_segmented_switch.dart';
@@ -59,8 +61,10 @@ class _PlazaScreenState extends ConsumerState<PlazaScreen> {
             ],
           ),
           Expanded(
-            child: RefreshIndicator(
-              color: PasslyBrand.primary,
+            child: PasslyRefresh(
+              // 増えていれば，アプリを開いたまますれ違ったときと同じ通知を出す
+              onDone: () =>
+                  ref.read(encounterNotifierProvider.notifier).refresh(),
               onRefresh: () async {
                 // CloseFriendListNotifier に refresh は無いので invalidate で
                 // build() をやり直させて再フェッチする。

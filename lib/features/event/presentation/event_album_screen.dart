@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passly/common/widgets/passly_refresh.dart';
 import 'package:passly/common/widgets/sized_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,8 +49,7 @@ class EventAlbumScreen extends ConsumerWidget {
             onSearchTap: () => _openSearch(context),
           ),
           Expanded(
-            child: RefreshIndicator(
-              color: PasslyBrand.primary,
+            child: PasslyRefresh(
               onRefresh: () {
                 ref.invalidate(favoriteNextEventsProvider);
                 return ref.refresh(eventAlbumProvider.future);
