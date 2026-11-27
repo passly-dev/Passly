@@ -12,10 +12,12 @@ import 'package:passly/core/config/feature_flags.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/demo/demo_api.dart';
 import 'package:passly/features/encounter/domain/encounter_notifier.dart';
+import 'package:passly/features/event/domain/today_event.dart';
 import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/home/presentation/widgets/pocket_mode_button.dart';
+import 'package:passly/features/home/presentation/widgets/today_event_strip.dart';
 import 'package:passly/core/utils/app_time.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
 
@@ -100,6 +102,8 @@ class HomeScreen extends ConsumerWidget {
           bottom: 180,
         ),
         children: [
+          // イベントの日だけ，参加中のイベントの帯を一番上に出す
+          ?_buildTodayEventStrip(context, ref, todayEncounters),
           // アイコンがまだないときは，顔が分かる写真をすすめる
           if (!isLoading && !FeatureFlags.demoMode && _hasNoIcon(ref)) ...[
             const IconPhotoBanner(),
@@ -109,6 +113,50 @@ class HomeScreen extends ConsumerWidget {
               ? const [LoadingCardsSkeleton()]
               : _buildCommonTagSections(context, ref, todayEncounters),
         ],
+      ),
+    );
+  }
+
+  /// 今日参加しているイベントの帯。イベントがない日は null。
+  ///
+  /// イベント中は上からのバナーを重ねず，まだ見ていないすれ違いが
+  /// [eventEncounterBatchSize] 人たまったら，この帯の表示を切り替えて知らせる。
+  Widget? _buildTodayEventStrip(
+    BuildContext context,
+    WidgetRef ref,
+    List<RecentEncounter> todayEncounters,
+  ) {
+    final event = ref.watch(todayEventProvider);
+    if (event == null) return null;
+
+    final pending =
+        ref.watch(encounterNotifierProvider).asData?.value ?? const [];
+    final isNew = hasEncounterBatch(pending.length);
+    final latestPending = [...pending]
+      ..sort((a, b) => b.encounteredAt.compareTo(a.encounteredAt));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: PasslySpace.s24),
+      child: TodayEventStrip(
+        eventName: event.name,
+        todayCount: todayEncounters.length,
+        started: !AppTime.nowLocal().isBefore(event.startAt),
+        newCount: isNew ? pending.length : null,
+        people: isNew
+            ? [
+                for (final e in latestPending.take(3))
+                  (
+                    iconUrl: e.encounteredUser.iconUrl,
+                    name: e.encounteredUser.name,
+                  ),
+              ]
+            : [
+                for (final e in todayEncounters.take(3))
+                  (iconUrl: e.iconUrl, name: e.name),
+              ],
+        onTap: isNew
+            ? () => context.go('/encounter-result')
+            : () => context.push(eventDetailLocation(event)),
       ),
     );
   }
