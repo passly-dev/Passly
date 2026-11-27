@@ -99,11 +99,16 @@ class _MemoEditorState extends State<MemoEditor>
   final FocusNode _bodyFocus = FocusNode();
   late int _color = widget.initial?.colorIndex ?? 0;
 
-  /// はがすときのくしゃっと縮む動き（0.25 秒）。
-  late final AnimationController _crumple = AnimationController(
+  /// はがす動き（0.9 秒）。
+  /// 0〜0.45: テープを支点に下のはしからめくれ上がる（めくれが大きくなる）。
+  /// 0.45: テープから紙がちぎれる（振動）。
+  /// 0.45〜1: 紙だけが回りながら下へ落ちていき，テープはその場に残って消える。
+  late final AnimationController _peeling = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 250),
+    duration: const Duration(milliseconds: 900),
   );
+  static const double _tear = 0.45;
+  bool _tornFelt = false;
 
   int get _length => _title.text.length + _body.text.length;
   int get _bodyLimit => math.max(0, PartnerMemo.maxLength - _title.text.length);
@@ -124,7 +129,7 @@ class _MemoEditorState extends State<MemoEditor>
     _body.dispose();
     _titleFocus.dispose();
     _bodyFocus.dispose();
-    _crumple.dispose();
+    _peeling.dispose();
     super.dispose();
   }
 
@@ -166,9 +171,10 @@ class _MemoEditorState extends State<MemoEditor>
   }
 
   Future<void> _peel() async {
-    HapticFeedback.mediumImpact();
+    if (_peeling.isAnimating) return;
+    HapticFeedback.lightImpact();
     FocusScope.of(context).unfocus();
-    await _crumple.forward();
+    await _peeling.forward();
     if (!mounted) return;
     Navigator.of(context).pop(const MemoPeeled());
   }
@@ -198,22 +204,8 @@ class _MemoEditorState extends State<MemoEditor>
                   ),
                   const SizedBox(height: 18),
                   AnimatedBuilder(
-                    animation: _crumple,
-                    builder: (context, child) {
-                      final t = Curves.easeIn.transform(_crumple.value);
-                      return Opacity(
-                        opacity: 1 - t,
-                        child: Transform.rotate(
-                          angle: t * 25 * math.pi / 180,
-                          child: Transform.scale(
-                            scaleX: 1 - t * 0.9,
-                            scaleY: 1 - t * 0.95,
-                            child: child,
-                          ),
-                        ),
-                      );
-                    },
-                    child: _note(color),
+                    animation: _peeling,
+                    builder: (context, _) => _peelingNote(color),
                   ),
                   SizedBox(
                     width: MemoEditor.noteWidth,
@@ -287,7 +279,59 @@ class _MemoEditorState extends State<MemoEditor>
     );
   }
 
-  Widget _note(MemoColor color) {
+  /// はがす動きをつけた付箋。
+  Widget _peelingNote(MemoColor color) {
+    final t = _peeling.value;
+    if (t == 0) return _note(color);
+    if (t >= _tear && !_tornFelt) {
+      _tornFelt = true;
+      HapticFeedback.mediumImpact();
+    }
+    final lift = Curves.easeOutCubic.transform((t / _tear).clamp(0.0, 1.0));
+    final fall = Curves.easeInCubic.transform(
+      ((t - _tear) / (1 - _tear)).clamp(0.0, 1.0),
+    );
+    final torn = t >= _tear;
+
+    final matrix = Matrix4.identity()
+      ..setEntry(3, 2, 0.0016)
+      ..translateByDouble(40 * fall, 560 * fall, 0, 1)
+      ..rotateZ(0.06 * lift + 0.6 * fall)
+      ..rotateX(-0.8 * lift - 0.5 * fall);
+
+    final paper = Opacity(
+      opacity: 1 - ((fall - 0.7) / 0.3).clamp(0.0, 1.0),
+      child: Transform(
+        alignment: Alignment.topCenter,
+        transform: matrix,
+        child: _note(color, fold: 14 + 56 * lift, tape: !torn),
+      ),
+    );
+
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        paper,
+        // ちぎれたあと，テープだけがその場に残ってうすれていく。
+        if (torn)
+          Positioned(
+            top: 0,
+            child: Opacity(
+              opacity: (1 - fall * 1.4).clamp(0.0, 1.0),
+              child: Transform.rotate(
+                angle: -4 * math.pi / 180,
+                child: MaskingTape(color: color, size: _tapeSize),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  static const Size _tapeSize = Size(56, 18);
+
+  Widget _note(MemoColor color, {double fold = 14, bool tape = true}) {
     const inputDeco = InputDecoration(
       isDense: true,
       border: InputBorder.none,
@@ -298,7 +342,9 @@ class _MemoEditorState extends State<MemoEditor>
       color: color,
       width: MemoEditor.noteWidth,
       height: 190,
-      tapeSize: const Size(56, 18),
+      tapeSize: _tapeSize,
+      tapeOpacity: tape ? 1 : 0,
+      foldSize: fold,
       padding: const EdgeInsets.fromLTRB(14, 16, 14, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
