@@ -5,6 +5,7 @@ import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/auth/domain/connpass_username.dart';
 import 'package:passly/features/auth/presentation/widgets/auth_widgets.dart';
+import 'package:passly/features/auth/presentation/widgets/step_ring.dart';
 
 /// アカウント作成画面Widget
 ///
@@ -198,16 +199,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     };
     return [
       Text(
-        'ステップ ${_step + 1}／$_stepCount',
-        style: const TextStyle(
-          fontFamily: PasslyFont.family,
-          color: PasslyBrand.primaryDark,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      const SizedBox(height: 4),
-      Text(
         title,
         style: const TextStyle(
           fontFamily: PasslyFont.family,
@@ -387,6 +378,9 @@ class _StepHeader extends StatelessWidget {
   final int count;
   final VoidCallback onBack;
 
+  /// ステップごとの短い名前（リングの横に出す）。
+  static const List<String> _names = ['ログイン情報', '名前とユーザーID', 'connpass'];
+
   const _StepHeader({
     required this.step,
     required this.count,
@@ -409,21 +403,21 @@ class _StepHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          for (int i = 0; i < count; i++) ...[
-            if (i > 0) const SizedBox(width: 6),
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                height: 6,
-                decoration: BoxDecoration(
-                  color: i <= step
-                      ? PasslyBrand.primary
-                      : PasslyBorder.defaultBorder,
-                  borderRadius: BorderRadius.circular(3),
-                ),
+          StepRing(step: step + 1, count: count),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _names[step.clamp(0, _names.length - 1)],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: PasslyFont.family,
+                color: PasslyText.primary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
