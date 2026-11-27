@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:passly/common/widgets/loading_card_skeleton.dart';
@@ -28,9 +29,11 @@ final eventMetPeopleProvider =
           .fetchDailyEncounters(userId: me.id, dateString: eventDateParam(day));
       // 実バックエンドは encounter_users、デモは users で返す。
       final users =
-          (data['users'] as List? ?? data['encounter_users'] as List? ?? const [])
-          .whereType<Map>()
-          .toList();
+          (data['users'] as List? ??
+                  data['encounter_users'] as List? ??
+                  const [])
+              .whereType<Map>()
+              .toList();
       bool hasCommon(Map u) => commonTechTags(
         me.techStack,
         (u['tech_stack'] ?? u['techStack'])?.toString() ?? '',
@@ -164,8 +167,8 @@ class EventDetailScreen extends ConsumerWidget {
               icon: const Icon(Icons.open_in_new, size: 18),
               label: const Text('イベントページを開く'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+                foregroundColor: PasslyAction.fill,
+                side: const BorderSide(color: PasslyAction.fill),
               ),
             ),
           ],

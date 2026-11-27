@@ -12,7 +12,7 @@ import 'package:passly/core/constants/passly_tokens.dart';
 ///
 /// Figma のヘッダー ComponentSet (node 1191:1101) の 7 バリアントを
 /// 名前付きコンストラクタで提供する:
-/// - [PasslyHeader.home]           : おかえり！+ サブタイトル + アバター
+/// - [PasslyHeader.home]           : ホーム + サブタイトル + アバター
 /// - [PasslyHeader.calendar]       : カレンダー + サブタイトル + 検索 + アバター
 /// - [PasslyHeader.otherProfile]   : 戻るボタンのみ（円形）
 /// - [PasslyHeader.myProfile]      : 戻る + 編集ペン
@@ -61,12 +61,12 @@ class PasslyHeader extends StatelessWidget {
        );
 
   /// ホームヘッダー (Figma node 1110:2236)。
-  /// 「おかえり！」+ サブタイトル + 右端にアバター。
+  /// 「ホーム」+ サブタイトル + 右端にアバター。
   factory PasslyHeader.home({
     Key? key,
     String? avatarUrl,
     VoidCallback? onAvatarTap,
-    String title = 'おかえり！',
+    String title = 'ホーム',
     String subtitle = '今日の出会いを見てみよう',
   }) {
     return PasslyHeader(

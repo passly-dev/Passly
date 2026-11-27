@@ -222,7 +222,7 @@ class _ComingSection extends ConsumerWidget {
 }
 
 const Color _nowColor = PasslyBrand.primary;
-const Color _nowText = Color(0xFF2E7D32);
+const Color _nowText = PasslyBrand.primaryDark;
 const Color _mineColor = Color(0xFFF59E0A);
 const Color _mineText = Color(0xFFB45309);
 const Color _mineBadgeBg = Color(0xFFFEF3E2);

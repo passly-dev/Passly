@@ -162,7 +162,7 @@ class AuthPrimaryButton extends StatelessWidget {
         boxShadow: enabled
             ? [
                 BoxShadow(
-                  color: PasslyBrand.primary.withValues(alpha: 0.28),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -171,8 +171,8 @@ class AuthPrimaryButton extends StatelessWidget {
       ),
       child: Material(
         color: enabled
-            ? PasslyBrand.primaryLight
-            : PasslyBrand.primaryLight.withValues(alpha: 0.5),
+            ? PasslyAction.fill
+            : PasslyAction.fill.withValues(alpha: 0.3),
         shape: const StadiumBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(

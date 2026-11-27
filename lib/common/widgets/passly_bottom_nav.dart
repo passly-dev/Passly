@@ -10,7 +10,7 @@ import 'package:passly/core/constants/passly_tokens.dart';
 /// - 不透明の白背景 / 全丸 / 枠線なし / 高さ 64
 /// - 影 1 つ: #858E85 10% / blur 31.2 / offset (0, 10)
 /// - 4 タブ横並び（アイコン 28 SVG + ラベル 7px SemiBold）
-/// - アクティブ: `PasslyBrand.primaryLight (#6BD168)` に色替え
+/// - アクティブ: `PasslyBrand.primary (#3AAA3A)` に色替え
 /// - 非アクティブ: `PasslyText.secondary (#6B7280)` に色替え
 ///
 /// アイコンは `assets/images/nav/*.svg` を `ColorFilter.srcIn` で動的に着色する。
@@ -108,7 +108,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? PasslyBrand.primaryLight : PasslyText.secondary;
+    final color = active ? PasslyBrand.primary : PasslyText.secondary;
     // Ink / スプラッシュ / ハイライトなどの視覚的モーションは付けない。
     // タップ時は currentIndex 変化に伴う色替えのみ発生する。
     return Expanded(

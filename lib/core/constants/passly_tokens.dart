@@ -14,6 +14,15 @@ abstract final class PasslyBrand {
   static const Color primaryMuted = Color(0xFFC7E9C7);
 }
 
+/// 押すボタン（保存・つぎへ・プロフィールを見る など）の色。
+///
+/// 緑はすれ違い・同じタグ・今いる場所などの「状態」だけに使い，
+/// 押すボタンは黒にして役割を分ける（2026-11-27 えいでん決定）。
+abstract final class PasslyAction {
+  static const Color fill = Color(0xFF111827);
+  static const Color onFill = Color(0xFFFFFFFF);
+}
+
 abstract final class PasslyBg {
   /// App background
   static const Color defaultBg = Color(0xFFF6F7F9);
