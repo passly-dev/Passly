@@ -41,7 +41,7 @@ Future<MemoEditResult?> showMemoEditor(
     barrierColor: const Color(0xFF111827).withValues(alpha: 0.72),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, _, _) =>
-        MemoEditor(initial: initial, dateLabel: dateLabel, from: from),
+        MemoEditor(initial: initial, dateLabel: dateLabel),
     transitionBuilder: (context, animation, _, child) {
       final t = Curves.easeOutCubic.transform(animation.value);
       final screen = MediaQuery.of(context).size;
@@ -81,34 +81,11 @@ Future<MemoEditResult?> showMemoEditor(
   );
 }
 
-/// はがす動きの案。
-enum MemoPeelStyle {
-  /// A: 右下の角からくるっとめくれて裏が見え，ふわっと持ち上がって消える。
-  curl,
-
-  /// B: テープの片側からはがれ，ひらひら舞いながら落ちていく。
-  flutter,
-
-  /// C: テープが先に飛び，付箋は小さくなりながら束に戻っていく。
-  back,
-}
-
 class MemoEditor extends StatefulWidget {
   final PartnerMemo? initial;
   final String dateLabel;
 
-  /// 付箋の束の画面上の位置（C 案で束に戻るときに使う）。
-  final Rect? from;
-
-  const MemoEditor({
-    super.key,
-    this.initial,
-    required this.dateLabel,
-    this.from,
-  });
-
-  /// はがす動きの案（動画で見比べる用）。
-  static MemoPeelStyle peelStyle = MemoPeelStyle.curl;
+  const MemoEditor({super.key, this.initial, required this.dateLabel});
 
   static const double noteWidth = 240;
 
@@ -137,16 +114,15 @@ class _MemoEditorState extends State<MemoEditor>
   final FocusNode _bodyFocus = FocusNode();
   late int _color = widget.initial?.colorIndex ?? 0;
 
-  /// はがす動き（0.9 秒）。
-  /// 0〜0.45: テープを支点に下のはしからめくれ上がる（めくれが大きくなる）。
-  /// 0.45: テープから紙がちぎれる（振動）。
-  /// 0.45〜1: 紙だけが回りながら下へ落ちていき，テープはその場に残って消える。
+  /// はがす動き（1 秒）。
+  /// 0〜0.62: 右下の角からめくれ上がる。
+  /// 0.62: テープから紙が離れる（振動）。
+  /// 0.62〜1: 紙がふわっと持ち上がって消え，テープはその場に残ってうすれる。
   late final AnimationController _peeling = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1000),
   );
   bool _tornFelt = false;
-  final GlobalKey _noteKey = GlobalKey();
 
   int get _length => _title.text.length + _body.text.length;
   int get _bodyLimit => math.max(0, PartnerMemo.maxLength - _title.text.length);
@@ -327,12 +303,8 @@ class _MemoEditorState extends State<MemoEditor>
   /// はがす動きをつけた付箋。
   Widget _peelingNote(MemoColor color) {
     final t = _peeling.value;
-    if (t == 0) return KeyedSubtree(key: _noteKey, child: _note(color));
-    return switch (MemoEditor.peelStyle) {
-      MemoPeelStyle.curl => _peelCurl(color, t),
-      MemoPeelStyle.flutter => _peelFlutter(color, t),
-      MemoPeelStyle.back => _peelBack(color, t),
-    };
+    if (t == 0) return _note(color);
+    return _peelCurl(color, t);
   }
 
   void _feelOnce(double t, double at, void Function() haptic) {
@@ -357,7 +329,8 @@ class _MemoEditorState extends State<MemoEditor>
     ),
   );
 
-  /// A: 角からめくれる → ふわっと持ち上がって消える。
+  /// 右下の角からくるっとめくれて裏が見え（影つき），テープから離れたところで
+  /// ふわっと持ち上がって消える。テープはその場に残ってうすれる。
   Widget _peelCurl(MemoColor color, double t) {
     const tear = 0.62;
     _feelOnce(t, tear, HapticFeedback.mediumImpact);
@@ -382,90 +355,6 @@ class _MemoEditorState extends State<MemoEditor>
           ),
         ),
         if (torn) _wallTape(color, 1 - _phase(t, tear, 0.9)),
-      ],
-    );
-  }
-
-  /// B: テープの右側からはがれ，ひらひら舞い落ちる。
-  Widget _peelFlutter(MemoColor color, double t) {
-    const tear = 0.18;
-    _feelOnce(t, tear, HapticFeedback.mediumImpact);
-    final hinge = Curves.easeOutBack.transform(_phase(t, 0, tear));
-    final fall = _phase(t, tear, 1);
-    final torn = t >= tear;
-    final y = 620 * math.pow(fall, 1.7).toDouble();
-    final sway = math.sin(fall * math.pi * 2.2);
-    final matrix = Matrix4.identity()
-      ..setEntry(3, 2, 0.0012)
-      ..translateByDouble(34 * sway, y, 0, 1)
-      ..rotateZ((10 * hinge + 16 * sway * fall) * math.pi / 180)
-      ..rotateY(0.5 * math.sin(fall * math.pi * 2.2 + 0.8) * fall)
-      ..rotateX(0.25 * fall);
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.topCenter,
-      children: [
-        Opacity(
-          opacity: 1 - _phase(t, 0.75, 1),
-          child: Transform(
-            alignment: torn ? Alignment.center : Alignment.topLeft,
-            transform: matrix,
-            child: _note(color, tape: !torn),
-          ),
-        ),
-        if (torn) _wallTape(color, 1 - _phase(t, tear, 0.5)),
-      ],
-    );
-  }
-
-  /// C: テープがはね飛び，付箋は小さくなりながら束に戻る。
-  Widget _peelBack(MemoColor color, double t) {
-    const tapeOff = 0.25;
-    final tapeT = Curves.easeOutCubic.transform(_phase(t, 0, tapeOff + 0.15));
-    final go = Curves.easeInOutCubic.transform(_phase(t, tapeOff, 0.92));
-    _feelOnce(t, 0.92, HapticFeedback.lightImpact);
-
-    // 束までの移動量（束が見つからなければ右上へ）。
-    var delta = const Offset(110, -200);
-    var endScale = 0.17;
-    final box = _noteKey.currentContext?.findRenderObject() as RenderBox?;
-    final from = widget.from;
-    if (box != null && box.hasSize && from != null) {
-      final noteCenter = box.localToGlobal(box.size.center(Offset.zero));
-      delta = from.center - noteCenter;
-      endScale = (from.width / MemoEditor.noteWidth).clamp(0.1, 0.5);
-    }
-    final nudge = math.sin(_phase(t, 0, tapeOff) * math.pi) * 0.03;
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.topCenter,
-      children: [
-        Opacity(
-          opacity: 1 - _phase(t, 0.88, 1),
-          child: Transform.translate(
-            offset: delta * go,
-            child: Transform.rotate(
-              angle: -4 * go * math.pi / 180,
-              child: Transform.scale(
-                scale: (1 + nudge) * (1 - (1 - endScale) * go),
-                child: _note(color, tape: false),
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          child: Opacity(
-            opacity: 1 - tapeT,
-            child: Transform.translate(
-              offset: Offset(30 * tapeT, -60 * tapeT),
-              child: Transform.rotate(
-                angle: (-4 + 40 * tapeT) * math.pi / 180,
-                child: MaskingTape(color: color, size: _tapeSize),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
