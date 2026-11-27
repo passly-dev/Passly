@@ -6,7 +6,7 @@ import 'package:proximity_sensor/proximity_sensor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:passly/core/config/feature_flags.dart';
-import 'package:passly/features/home/presentation/widgets/pocket_mode_button.dart';
+import 'package:passly/features/home/presentation/widgets/pocket_pull_nav.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,6 +39,12 @@ class MainScreen extends ConsumerStatefulWidget {
 
 class _MainScreenState extends ConsumerState<MainScreen>
     with WidgetsBindingObserver {
+  /// ナビのうしろのポケット（ポケットモードの切り替え）。
+  final GlobalKey<PocketPullNavState> _pocketKey = GlobalKey();
+
+  /// ポケットの出ぐあい（うしろを暗くするのに使う）。
+  final ValueNotifier<double> _pocketProgress = ValueNotifier(0);
+
   static const MethodChannel _batteryChannel = MethodChannel(
     'passly/battery_optimization',
   );
@@ -111,6 +117,7 @@ class _MainScreenState extends ConsumerState<MainScreen>
 
   @override
   void dispose() {
+    _pocketProgress.dispose();
     // アプリ完全終了時にBLEおよび近接センサーを停止
     WidgetsBinding.instance.removeObserver(this);
     _stopProximitySensor();
@@ -517,7 +524,16 @@ class _MainScreenState extends ConsumerState<MainScreen>
           backgroundColor: AppColors.backgroundWhite,
           extendBody: true, // タブバーの背後まで画面を広げる
           body: widget.navigationShell,
-          bottomNavigationBar: _buildBottomNav(context),
+          bottomNavigationBar: showPocketModeButton
+              // ナビは下の PocketPullNav が描くので，ここは場所だけ取る
+              ? Visibility(
+                  visible: false,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: _buildBottomNav(context),
+                )
+              : _buildBottomNav(context),
         ),
         // ポケットモードの切り替え（iOS のホームだけ。右端から 16、ナビの上端から 16 上）。
         // ナビの Stack の外にはみ出して置くとタップが届かないので、画面全体の Stack に置く。
@@ -528,12 +544,38 @@ class _MainScreenState extends ConsumerState<MainScreen>
           right: 15,
           child: _buildEncounterBanner(pending),
         ),
-        if (showPocketModeButton)
-          Positioned(
-            right: 16,
-            bottom: MediaQuery.paddingOf(context).bottom + 15 + 64 + 16,
-            child: const PocketModeButton(),
+        // ポケットモード（iOS のホームだけ）。ナビを上に引くと，うしろから
+        // ポケットが出てくる。ナビごとここに重ねて描く（Scaffold 側のナビは
+        // 場所だけ取って見えなくしている）。
+        if (showPocketModeButton) ...[
+          Positioned.fill(
+            child: ValueListenableBuilder<double>(
+              valueListenable: _pocketProgress,
+              builder: (context, t, _) => IgnorePointer(
+                ignoring: t < 0.01,
+                child: GestureDetector(
+                  onTap: () => _pocketKey.currentState?.close(),
+                  child: ColoredBox(
+                    color: AppColors.textPrimary.withValues(alpha: 0.25 * t),
+                  ),
+                ),
+              ),
+            ),
           ),
+          Positioned(
+            left: 15,
+            right: 15,
+            bottom: MediaQuery.paddingOf(context).bottom + 15,
+            child: PocketPullNav(
+              key: _pocketKey,
+              onProgress: (t) => _pocketProgress.value = t,
+              child: PasslyBottomNav(
+                currentIndex: widget.navigationShell.currentIndex,
+                onTap: (index) => _onTap(context, index),
+              ),
+            ),
+          ),
+        ],
         if (shouldBlackoutScreen)
           Positioned.fill(
             child: AbsorbPointer(

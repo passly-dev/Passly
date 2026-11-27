@@ -16,8 +16,8 @@ import 'package:passly/features/event/domain/today_event.dart';
 import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
 import 'package:passly/features/auth/domain/auth_notifier.dart';
-import 'package:passly/features/home/presentation/widgets/pocket_mode_button.dart';
 import 'package:passly/features/home/presentation/widgets/today_event_strip.dart';
+import 'package:passly/features/home/presentation/widgets/pocket_pull_nav.dart';
 import 'package:passly/core/utils/app_time.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
 
@@ -27,7 +27,7 @@ import 'package:passly/features/user/domain/common_tags.dart';
 /// いちばん共通点が多い人を大きいカードで上に置き，残りは一覧にする。
 /// 話しかける勇気がない人でも，共通点がある人なら最初の一言をかけやすいため。
 /// 右上は自分のアイコン（マイページへ）。ポケットモードの切り替えは iOS だけ、
-/// [MainScreen] がナビの上に [PocketModeButton] として出す。
+/// [MainScreen] がナビのうしろのポケット（[PocketPullNav]）として出す。
 ///
 /// ボトムナビは [MainScreen] 側で `PasslyBottomNav` として全タブ共通で描画する。
 class HomeScreen extends ConsumerWidget {
