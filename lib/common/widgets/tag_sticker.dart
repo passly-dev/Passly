@@ -217,8 +217,6 @@ class TagLogo {
     'linux': TagLogo(asset: 'linux', color: Color(0xFFFCC624), text: 'Linux'),
     'vscode': TagLogo(asset: 'vscode', color: Color(0xFF007ACC), text: 'VS'),
     'vim': TagLogo(asset: 'vim', color: Color(0xFF019733), text: 'Vim'),
-    'notion': TagLogo(asset: 'notion', color: Color(0xFF000000), text: 'N'),
-    'discord': TagLogo(asset: 'discord', color: Color(0xFF5865F2), text: 'Dc'),
   };
 
   /// タグ名（大文字小文字は無視）からロゴを引く。カタログにないタグは灰色の文字。

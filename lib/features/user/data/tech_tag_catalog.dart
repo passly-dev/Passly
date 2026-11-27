@@ -116,8 +116,6 @@ class TechTagCatalog {
       'Linux',
       'VSCode',
       'Vim',
-      'Notion',
-      'Discord',
     ]),
   ];
 
