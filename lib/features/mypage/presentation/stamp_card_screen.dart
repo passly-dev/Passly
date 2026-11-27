@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:passly/core/constants/app_colors.dart';
 
@@ -87,7 +88,7 @@ class StampCardScreen extends ConsumerWidget {
               onPressed: () =>
                   ref.read(achievementNotifierProvider.notifier).refresh(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: PasslyAction.fill,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -334,7 +335,7 @@ class _AchievementDetailDialog extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: PasslyAction.fill,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

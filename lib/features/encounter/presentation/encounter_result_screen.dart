@@ -721,7 +721,7 @@ class _ActionButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _PillButton(
-          backgroundColor: PasslyBrand.primaryLight,
+          backgroundColor: PasslyAction.fill,
           textColor: Colors.white,
           label: 'プロフィールを見る',
           shadow: BoxShadow(

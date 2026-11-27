@@ -514,7 +514,7 @@ class _EditHeader extends StatelessWidget {
                   onPressed: canSave ? onSave : null,
                   style: FilledButton.styleFrom(
                     padding: EdgeInsets.zero,
-                    backgroundColor: PasslyBrand.primary,
+                    backgroundColor: PasslyAction.fill,
                     disabledBackgroundColor: PasslyBorder.defaultBorder,
                     disabledForegroundColor: PasslyText.tertiary,
                     shape: const StadiumBorder(),

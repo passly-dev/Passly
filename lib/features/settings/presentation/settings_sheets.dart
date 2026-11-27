@@ -581,7 +581,7 @@ class _SheetButton extends StatelessWidget {
     }
     final color = style == _SheetButtonStyle.danger
         ? PasslyState.error
-        : PasslyBrand.primary;
+        : PasslyAction.fill;
     return FilledButton(
       onPressed: isLoading ? () {} : onPressed,
       style: FilledButton.styleFrom(

@@ -289,9 +289,7 @@ class HomeScreen extends ConsumerWidget {
           const SizedBox(height: PasslySpace.s16),
           ElevatedButton(
             onPressed: () => ref.read(homeNotifierProvider.notifier).refresh(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: PasslyBrand.primary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: PasslyAction.fill),
             child: const Text('再試行', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -503,7 +501,7 @@ class _FeaturedCard extends StatelessWidget {
                 height: 50,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: PasslyBrand.primaryLight,
+                  color: PasslyAction.fill,
                   borderRadius: BorderRadius.circular(100),
                   boxShadow: [
                     BoxShadow(
