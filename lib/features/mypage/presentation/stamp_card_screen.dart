@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:passly/common/widgets/passly_refresh.dart';
 import 'package:passly/core/constants/app_colors.dart';
 
 import 'package:passly/features/mypage/domain/achievement_model.dart';
@@ -17,8 +18,7 @@ class StampCardScreen extends ConsumerWidget {
       backgroundColor: AppColors.backgroundWhite,
       appBar: _buildAppBar(context),
       body: achievementState.when(
-        data: (data) => RefreshIndicator(
-          color: AppColors.primary,
+        data: (data) => PasslyRefresh(
           onRefresh: () =>
               ref.read(achievementNotifierProvider.notifier).refresh(),
           child: SingleChildScrollView(
