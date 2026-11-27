@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,7 +38,7 @@ Future<MemoEditResult?> showMemoEditor(
     context: context,
     barrierDismissible: true,
     barrierLabel: '閉じる',
-    barrierColor: const Color(0xFF111827).withValues(alpha: 0.6),
+    barrierColor: const Color(0xFF111827).withValues(alpha: 0.72),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, _, _) =>
         MemoEditor(initial: initial, dateLabel: dateLabel),
@@ -52,15 +53,29 @@ Future<MemoEditResult?> showMemoEditor(
       final offset = Offset.lerp(origin - center, Offset.zero, t)!;
       final scale = startScale + (1 - startScale) * t;
       final angle = (1 - t) * -5 * math.pi / 180;
-      return Opacity(
-        opacity: animation.value < 0.15 ? animation.value / 0.15 : 1,
-        child: Transform.translate(
-          offset: offset,
-          child: Transform.rotate(
-            angle: angle,
-            child: Transform.scale(scale: scale, child: child),
+      // うしろの画面をぼかして，ボタンや文字と重ならないようにする。
+      final blur = 10 * animation.value;
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                child: const SizedBox.expand(),
+              ),
+            ),
           ),
-        ),
+          Opacity(
+            opacity: animation.value < 0.15 ? animation.value / 0.15 : 1,
+            child: Transform.translate(
+              offset: offset,
+              child: Transform.rotate(
+                angle: angle,
+                child: Transform.scale(scale: scale, child: child),
+              ),
+            ),
+          ),
+        ],
       );
     },
   );
@@ -207,18 +222,41 @@ class _MemoEditorState extends State<MemoEditor>
                     animation: _peeling,
                     builder: (context, _) => _peelingNote(color),
                   ),
+                  // 「自分にしか見えない」と文字数は付箋のすぐ下に置き，
+                  // キーボードが出ても隠れないようにする。
                   SizedBox(
-                    width: MemoEditor.noteWidth,
+                    width: MemoEditor.noteWidth + 40,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        '$_length / ${PartnerMemo.maxLength}',
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.lock_rounded,
+                            size: 13,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          const Expanded(
+                            child: Text(
+                              'この付箋は自分にしか見えません',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '$_length / ${PartnerMemo.maxLength}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -232,7 +270,7 @@ class _MemoEditorState extends State<MemoEditor>
                         _PhraseChip(label: p, onTap: () => _addPhrase(p)),
                     ],
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
                   Row(
                     children: [
                       Expanded(
@@ -250,22 +288,6 @@ class _MemoEditorState extends State<MemoEditor>
                           label: '貼る',
                           filled: true,
                           onTap: _paste,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.lock_rounded, size: 13, color: Colors.white70),
-                      SizedBox(width: 4),
-                      Text(
-                        'この付箋は自分にしか見えません',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -341,7 +363,7 @@ class _MemoEditorState extends State<MemoEditor>
     return StickyPaper(
       color: color,
       width: MemoEditor.noteWidth,
-      height: 190,
+      height: MediaQuery.of(context).viewInsets.bottom > 0 ? 160 : 190,
       tapeSize: _tapeSize,
       tapeOpacity: tape ? 1 : 0,
       foldSize: fold,
@@ -463,10 +485,8 @@ class _PhraseChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.14),
-      shape: StadiumBorder(
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
-      ),
+      color: Colors.white,
+      shape: const StadiumBorder(),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
@@ -475,7 +495,7 @@ class _PhraseChip extends StatelessWidget {
           child: Text(
             '＋ $label',
             style: const TextStyle(
-              color: Colors.white,
+              color: Color(0xFF111827),
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -501,8 +521,12 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: filled ? Colors.white : Colors.white.withValues(alpha: 0.18),
-      shape: const StadiumBorder(),
+      color: filled ? Colors.white : Colors.transparent,
+      shape: StadiumBorder(
+        side: filled
+            ? BorderSide.none
+            : const BorderSide(color: Colors.white, width: 1.5),
+      ),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
