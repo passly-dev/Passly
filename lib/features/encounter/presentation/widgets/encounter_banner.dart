@@ -16,6 +16,10 @@ class EncounterBanner extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onDismiss;
 
+  /// 中身を差し替えるとき（イベント中は今日のイベントの帯と同じ形で出す）。
+  /// null ならいつもの緑のカード。
+  final Widget? child;
+
   const EncounterBanner({
     super.key,
     required this.visible,
@@ -24,6 +28,7 @@ class EncounterBanner extends StatelessWidget {
     required this.people,
     required this.onOpen,
     required this.onDismiss,
+    this.child,
   });
 
   static const Duration duration = Duration(milliseconds: 380);
@@ -44,7 +49,7 @@ class EncounterBanner extends StatelessWidget {
             onVerticalDragEnd: (d) {
               if ((d.primaryVelocity ?? 0) < -100) onDismiss();
             },
-            child: _card(),
+            child: child ?? _card(),
           ),
         ),
       ),

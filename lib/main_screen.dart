@@ -20,6 +20,8 @@ import 'package:passly/features/auth/domain/auth_notifier.dart';
 import 'package:passly/features/encounter/domain/encounter_notifier.dart';
 import 'package:passly/features/encounter/domain/encounter_model.dart';
 import 'package:passly/features/encounter/presentation/widgets/encounter_banner.dart';
+import 'package:passly/features/event/domain/today_event.dart';
+import 'package:passly/features/home/presentation/widgets/today_event_strip.dart';
 import 'package:passly/features/notification/encounter_notification_text.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 import 'package:passly/features/ble/domain/power_mode_notifier.dart';
@@ -291,6 +293,12 @@ class _MainScreenState extends ConsumerState<MainScreen>
         ref.read(encounterNotifierProvider).asData?.value ?? const [];
     if (pending.isEmpty) return;
 
+    // イベント中は，まとまった人数になるまで知らせない（ホームの帯で人数だけ増える）
+    if (ref.read(todayEventProvider) != null &&
+        !hasEncounterBatch(pending.length)) {
+      return;
+    }
+
     final location = _currentLocation();
     if (location == '/encounter-result') return;
 
@@ -320,6 +328,24 @@ class _MainScreenState extends ConsumerState<MainScreen>
     setState(() => _isBannerVisible = false);
   }
 
+  /// ホームの一覧がいちばん上に出ているか（イベントの帯が見えているか）。
+  bool _isHomeOnTop() =>
+      _currentLocation() == '/home' &&
+      (ModalRoute.isCurrentOf(context) ?? true);
+
+  /// イベント中に未確認のすれ違いが増えたとき。
+  ///
+  /// 1 人ずつではなく [eventEncounterBatchSize] 人ごとにまとめて知らせる。
+  /// ホームではイベントの帯がそのまま緑に変わるので，上からのバナーは重ねない。
+  void _onEncounterDuringEvent(int prevCount, int nextCount) {
+    if (!crossedEncounterBatch(prevCount, nextCount)) return;
+    if (_isHomeOnTop()) {
+      HapticFeedback.lightImpact();
+      return;
+    }
+    _showEncounterBanner();
+  }
+
   void _openEncounterResultFromBanner() {
     _hideEncounterBanner();
     context.go('/encounter-result');
@@ -336,14 +362,49 @@ class _MainScreenState extends ConsumerState<MainScreen>
     final title = pending.length >= 2
         ? '新しく${pending.length}人とすれ違いました'
         : text.title.replaceAll('！', '');
+    final people = [
+      for (final e in latestFirst.take(3))
+        (iconUrl: e.encounteredUser.iconUrl, name: e.encounteredUser.name),
+    ];
+
+    // イベント中は，ホームの今日のイベントの帯と同じ形で出す
+    final todayEvent = ref.watch(todayEventProvider);
+    if (todayEvent != null) {
+      return EncounterBanner(
+        visible: _isBannerVisible && hasEncounterBatch(pending.length),
+        title: title,
+        body: text.body,
+        people: people,
+        onOpen: _openEncounterResultFromBanner,
+        onDismiss: _hideEncounterBanner,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TodayEventStrip(
+            key: const Key('encounter_banner_event'),
+            eventName: todayEvent.name,
+            todayCount: 0,
+            newCount: pending.length,
+            people: people,
+            onTap: _openEncounterResultFromBanner,
+          ),
+        ),
+      );
+    }
+
     return EncounterBanner(
       visible: _isBannerVisible && pending.isNotEmpty,
       title: title,
       body: text.body,
-      people: [
-        for (final e in latestFirst.take(2))
-          (iconUrl: e.encounteredUser.iconUrl, name: e.encounteredUser.name),
-      ],
+      people: people.take(2).toList(),
       onOpen: _openEncounterResultFromBanner,
       onDismiss: _hideEncounterBanner,
     );
@@ -377,6 +438,10 @@ class _MainScreenState extends ConsumerState<MainScreen>
       if (previous?.hasValue != true) return;
 
       debugPrint('未確認すれ違い増加を検知: $prevCount -> $nextCount');
+      if (ref.read(todayEventProvider) != null) {
+        _onEncounterDuringEvent(prevCount, nextCount);
+        return;
+      }
       // アプリを開いたまますれ違ったときは，画面を切り替えずにバナーで知らせる
       _showEncounterBanner();
     });
@@ -408,6 +473,9 @@ class _MainScreenState extends ConsumerState<MainScreen>
           .read(bleNotifierProvider.notifier)
           .consumeUnlockedAchievementNotifications();
     });
+
+    // 今日のイベントを読み込んでおく（イベント中はすれ違いをまとめて知らせるため）
+    ref.watch(todayEventProvider);
 
     final pendingState = ref.watch(encounterNotifierProvider);
     final pending = pendingState.asData?.value ?? const <EncounterModel>[];
