@@ -22,12 +22,32 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
     final userId = await repo.getSavedUserId();
     if (userId == null) return null;
 
+    // 前回のプロフィールがあれば先に出し，サーバーからの取得はうしろで行う。
+    // （サーバーが眠っていると最初の通信に 30 秒以上かかるため）
+    final cached = await repo.readCachedUser(userId);
+    if (cached != null) {
+      Future.microtask(_refreshQuietly);
+      return cached;
+    }
+
     try {
       return await repo.restoreSession(userId);
     } catch (_) {
       // ユーザー情報取得に失敗した場合は未ログインとする
       return null;
     }
+  }
+
+  /// うしろで最新のプロフィールに入れかえる。失敗したら今の表示のまま。
+  Future<void> _refreshQuietly() async {
+    final repo = ref.read(authRepositoryProvider);
+    final userId = await repo.getSavedUserId();
+    if (userId == null) return;
+    try {
+      final fresh = await repo.restoreSession(userId);
+      // その間にログアウトなどで別の状態になっていたら上書きしない。
+      if (state.value?.id == userId) state = AsyncValue.data(fresh);
+    } catch (_) {}
   }
 
   /// ログイン処理（メールアドレスで認証）

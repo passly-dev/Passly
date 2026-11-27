@@ -122,6 +122,17 @@ class AuthRepository {
     }
   }
 
+  /// 前回取得した自分のプロフィール（なければ null）。
+  Future<UserModel?> readCachedUser(String id) async {
+    try {
+      final cachedStr = await _storage.read(key: 'cached_user_profile_$id');
+      if (cachedStr == null) return null;
+      return UserModel.fromJson(jsonDecode(cachedStr) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// 保存済みユーザーIDの有無を確認する
   Future<bool> hasSession() async {
     if (FeatureFlags.demoMode) return true;

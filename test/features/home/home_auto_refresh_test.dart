@@ -30,6 +30,9 @@ class _FakeEncounters extends EncounterNotifier {
 
 /// 呼ばれた回数を数え，回数ぶんの人を recent_encounters に返す。
 class _FakeHomeRepository implements HomeRepository {
+  @override
+  Future<Map<String, dynamic>?> readCachedHomeData(String userId) async => null;
+
   int calls = 0;
 
   @override
