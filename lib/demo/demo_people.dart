@@ -92,7 +92,7 @@ const List<DemoPerson> demoPeople = [
     affiliation: '三河高専 情報工学科',
     about: 'Swift で SwiftUI のアプリを作っています。BLE を使った作品に興味あり。',
     role: 'frontend',
-    tags: ['Swift', 'iOS', 'Firebase', 'Figma'],
+    tags: ['Swift', 'SwiftUI', 'Firebase', 'Figma'],
     githubUrl: 'https://github.com/example-sota',
   ),
   DemoPerson(
@@ -122,7 +122,7 @@ const List<DemoPerson> demoPeople = [
     affiliation: '岐阜情報大学 モバイル部',
     about: 'Jetpack Compose が好きです。Flutter との違いについて語りたい。',
     role: 'frontend',
-    tags: ['Kotlin', 'Android', 'Firebase', 'GitHub'],
+    tags: ['Kotlin', 'Jetpack Compose', 'Firebase', 'GitHub'],
   ),
   DemoPerson(
     id: 'demo_09',
