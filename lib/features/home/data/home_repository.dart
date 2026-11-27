@@ -46,4 +46,16 @@ class HomeRepository {
       rethrow;
     }
   }
+
+  /// 前回取得したホームのデータ（なければ null）。
+  /// アプリを開いたときに先に出し，通信が終わるまでの待ち時間をなくす。
+  Future<Map<String, dynamic>?> readCachedHomeData(String userId) async {
+    try {
+      final cachedStr = await _storage.read(key: 'cached_home_data_$userId');
+      if (cachedStr == null) return null;
+      return jsonDecode(cachedStr) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
 }

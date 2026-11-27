@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,11 @@ import 'package:passly/core/network/network_sync_provider.dart';
 import 'package:passly/demo/demo_image_server.dart';
 
 Future<void> main() async {
+  // 本番（リリース版）ではログを出さない。文字列を作って書き出す分の処理を省く。
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   // デモモードではアイコン画像を端末内で用意する
   if (FeatureFlags.demoMode) {
     WidgetsFlutterBinding.ensureInitialized();

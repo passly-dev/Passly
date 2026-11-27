@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passly/common/widgets/sized_network_image.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -118,8 +119,8 @@ class EventDetailScreen extends ConsumerWidget {
           if (event.imageUrl.isNotEmpty) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                event.imageUrl,
+              child: Image(
+                image: passlyNetworkImage(event.imageUrl),
                 width: double.infinity,
                 fit: BoxFit.fitWidth,
                 errorBuilder: (_, _, _) => const SizedBox.shrink(),

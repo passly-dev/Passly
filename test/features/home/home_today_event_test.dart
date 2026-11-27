@@ -35,6 +35,9 @@ class _FakeEncounters extends EncounterNotifier {
 
 class _EmptyHomeRepository implements HomeRepository {
   @override
+  Future<Map<String, dynamic>?> readCachedHomeData(String userId) async => null;
+
+  @override
   Future<Map<String, dynamic>> fetchHomeData(String userId) async => {};
 
   @override

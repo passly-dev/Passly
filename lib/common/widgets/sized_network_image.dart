@@ -1,6 +1,25 @@
+import 'dart:io' show Platform;
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+/// ネットワーク画像の読み込み元。アプリでは端末に保存して，2 回目からはすぐ出す。
+/// テストでは端末の保存先が使えないので，ふつうの読み込みにする。
+ImageProvider passlyNetworkImage(String url) =>
+    _useDiskCache ? CachedNetworkImageProvider(url) : NetworkImage(url);
+
+final bool _useDiskCache = () {
+  try {
+    return !Platform.environment.containsKey('FLUTTER_TEST');
+  } catch (_) {
+    return true;
+  }
+}();
+
 /// 表示する大きさに合わせて縮めてから読み込むネットワーク画像。
+///
+/// 画像は端末に保存し（[passlyNetworkImage]），アプリを開き直しても
+/// ダウンロードし直さない。
 ///
 /// アイコンやイベント画像は元の画像（512px 以上）をそのまま読むと，
 /// 40px ほどの丸に出すだけでもメモリとデコードの時間を使う。
@@ -41,9 +60,9 @@ class SizedNetworkImage extends StatelessWidget {
       builder: (context, constraints) {
         final size = decodeSize(constraints, dpr);
         final ImageProvider provider = size == null
-            ? NetworkImage(url)
+            ? passlyNetworkImage(url)
             : ResizeImage(
-                NetworkImage(url),
+                passlyNetworkImage(url),
                 width: size,
                 height: size,
                 policy: ResizeImagePolicy.fit,

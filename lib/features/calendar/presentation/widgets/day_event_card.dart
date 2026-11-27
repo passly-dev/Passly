@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passly/common/widgets/sized_network_image.dart';
 
 import 'package:passly/common/widgets/passly_icon.dart';
 import 'package:passly/common/widgets/press_feedback.dart';
@@ -173,8 +174,8 @@ class _EventImage extends StatelessWidget {
       child: imageUrl != null && imageUrl!.isNotEmpty
           ? ClipRRect(
               borderRadius: BorderRadius.circular(_radius),
-              child: Image.network(
-                imageUrl!,
+              child: Image(
+                image: passlyNetworkImage(imageUrl!),
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _placeholder(),
               ),

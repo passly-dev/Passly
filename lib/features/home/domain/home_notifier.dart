@@ -78,7 +78,26 @@ class HomeNotifier extends AsyncNotifier<HomeState> {
       refresh();
     });
 
+    // 前回のデータがあれば先に出し，最新はうしろで取り直す。
+    final cached = await _readCache();
+    if (cached != null) {
+      Future.microtask(refresh);
+      return cached;
+    }
     return await _fetchHomeData();
+  }
+
+  Future<HomeState?> _readCache() async {
+    final user = ref.read(authNotifierProvider).value;
+    if (user == null) return null;
+    try {
+      final data = await ref
+          .read(homeRepositoryProvider)
+          .readCachedHomeData(user.id);
+      return data == null ? null : HomeState.fromJson(data);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// ホームデータを取得
