@@ -56,6 +56,29 @@ class DemoApi {
     _pendingIds = ids.where((id) => _commonCount(id) > 0).toList();
   }
 
+  /// アプリを開いたまますれ違う人の順番（今日まだ会っていない人）。
+  late final List<String> _arrivalQueue = [
+    for (final p in demoPeople)
+      if (!demoTodayPeople.contains(p.id)) p.id,
+  ];
+
+  /// まだ「今すれ違う」ことにできる人数。
+  int get remainingArrivals => _arrivalQueue.length;
+
+  /// アプリを開いたまま，今日のイベントで 1 人とすれ違ったことにする。
+  ///
+  /// 今日のすれ違いと未確認の一覧に足す。もう残っていなければ false。
+  bool arriveOne() {
+    if (_arrivalQueue.isEmpty) return false;
+    final id = _arrivalQueue.removeAt(0);
+    _records.insert(
+      0,
+      _Record(personId: id, event: _todayEvent, metAt: AppTime.nowUtc()),
+    );
+    _pendingIds = [..._pendingIds, id];
+    return true;
+  }
+
   int _commonCount(String id) =>
       _person(id)!.tags.where(demoMe.tags.contains).length;
 
