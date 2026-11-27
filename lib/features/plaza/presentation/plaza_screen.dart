@@ -12,6 +12,7 @@ import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/close_friend/domain/close_friend_list_notifier.dart';
 import 'package:passly/features/home/domain/home_notifier.dart';
 import 'package:passly/features/home/domain/recent_encounter.dart';
+import 'package:passly/features/memo/domain/partner_memo.dart';
 import 'package:passly/features/user/domain/common_tags.dart';
 import 'package:passly/features/user/domain/user_model.dart';
 
@@ -144,6 +145,7 @@ class _PlazaScreenState extends ConsumerState<PlazaScreen> {
                   .asData
                   ?.value,
               isFavorite: favoriteIds.contains(e.userId),
+              memo: ref.watch(partnerMemoProvider(e.userId)),
               onTap: () => context.push('/profile/${e.userId}'),
             ),
           ),
