@@ -15,14 +15,16 @@ class TechTagCatalog {
       'Python',
       'JavaScript',
       'TypeScript',
-      'Kotlin',
-      'Swift',
       'Java',
       'Ruby',
       'PHP',
       'Rust',
+      'C',
       'C++',
       'C#',
+      'Scala',
+      'Elixir',
+      'Haskell',
     ]),
     TechTagCategory('フロントエンド', [
       'React',
@@ -31,37 +33,104 @@ class TechTagCatalog {
       'Next.js',
       'Nuxt',
       'Svelte',
+      'Astro',
+      'Vite',
       'Tailwind',
+      'Sass',
+      'shadcn/ui',
+      'jQuery',
+      'Three.js',
+      'Storybook',
     ]),
-    TechTagCategory('モバイル', ['Flutter', 'React Native', 'iOS', 'Android']),
+    TechTagCategory('モバイル', [
+      'Flutter',
+      'React Native',
+      'Swift',
+      'Kotlin',
+      'SwiftUI',
+      'Jetpack Compose',
+      'Expo',
+    ]),
     TechTagCategory('バックエンド', [
       'Node.js',
       'Express',
+      'NestJS',
+      'Hono',
       'Django',
+      'FastAPI',
+      'Flask',
       'Rails',
       'Spring',
       'Laravel',
+      'Gin',
       'Fastify',
+      'GraphQL',
+      'Deno',
+      'Bun',
     ]),
     TechTagCategory('インフラ / クラウド', [
       'AWS',
       'GCP',
       'Azure',
       'Firebase',
+      'Supabase',
+      'Vercel',
+      'Cloudflare',
+      'Netlify',
+      'Render',
       'Docker',
       'Kubernetes',
       'Terraform',
+      'Nginx',
+      'GitHub Actions',
     ]),
     TechTagCategory('データベース', [
       'PostgreSQL',
       'MySQL',
+      'MariaDB',
       'MongoDB',
       'Redis',
       'SQLite',
+      'Prisma',
     ]),
-    TechTagCategory('デザイン', ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator']),
-    TechTagCategory('その他', ['Git', 'GitHub', 'GitLab', 'Linux', 'VSCode']),
+    TechTagCategory('AI / データ', [
+      'PyTorch',
+      'TensorFlow',
+      'pandas',
+      'Jupyter',
+      'LangChain',
+    ]),
+    TechTagCategory('ゲーム / 3D', ['Unity', 'Unreal Engine', 'Godot', 'Blender']),
+    TechTagCategory('ハードウェア', ['Arduino', 'Raspberry Pi', 'ROS']),
+    TechTagCategory('デザイン', [
+      'Figma',
+      'Adobe XD',
+      'Photoshop',
+      'Illustrator',
+      'Canva',
+    ]),
+    TechTagCategory('その他', [
+      'Git',
+      'GitHub',
+      'GitLab',
+      'Linux',
+      'VSCode',
+      'Vim',
+      'Notion',
+      'Discord',
+    ]),
   ];
+
+  /// 前の名前から今の名前への読みかえ（大文字小文字は無視）。
+  ///
+  /// モバイルの iOS・Android は，使う言語の Swift・Kotlin にまとめた。
+  /// 前に付けたタグもそのまま今の名前で出るようにする。
+  static const Map<String, String> aliases = {
+    'ios': 'Swift',
+    'android': 'Kotlin',
+    'shadcn': 'shadcn/ui',
+    'godot engine': 'Godot',
+  };
 
   /// フラットな全タグ (ルックアップや正規化用)。
   static final List<String> allTags = [for (final c in categories) ...c.tags];
@@ -75,7 +144,16 @@ class TechTagCatalog {
   static List<String> parse(String raw) {
     if (raw.trim().isEmpty) return const [];
     final result = <String>[];
-    for (final piece in raw.split(RegExp(r'[,、/／・]+'))) {
+    // 「shadcn/ui」のように / を含むタグは，区切りの / で分けないようにする
+    var text = raw;
+    for (final tag in _slashTags) {
+      text = text.replaceAll(
+        RegExp(RegExp.escape(tag), caseSensitive: false),
+        tag.replaceAll('/', _slashMark),
+      );
+    }
+    for (final rawPiece in text.split(RegExp(r'[,、/／・]+'))) {
+      final piece = rawPiece.replaceAll(_slashMark, '/');
       final trimmed = piece.trim();
       if (trimmed.isEmpty) continue;
       final normalized = normalize(trimmed);
@@ -88,6 +166,12 @@ class TechTagCatalog {
     }
     return result;
   }
+
+  static final List<String> _slashTags = [
+    for (final t in allTags)
+      if (t.contains('/')) t,
+  ];
+  static const String _slashMark = '\u0000';
 
   /// タグの一覧を tech_stack の文字列に戻す (カンマ区切り)。
   static String join(Iterable<String> tags) => tags.join(', ');
@@ -126,7 +210,7 @@ class TechTagCatalog {
     for (final tag in allTags) {
       if (tag.toLowerCase() == lower) return tag;
     }
-    return trimmed;
+    return aliases[lower] ?? trimmed;
   }
 }
 
