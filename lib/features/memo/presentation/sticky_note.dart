@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:passly/core/constants/passly_tokens.dart';
 import 'package:passly/features/memo/domain/partner_memo.dart';
 
-/// 付箋で使う文字。見出しは手書き風（OFL），本文はアプリの文字。
+/// 付箋で使う文字。見出しも本文もアプリの文字にそろえ，見出しは太字にする。
 abstract final class MemoFont {
-  static const String title = 'Hachi Maru Pop';
+  static const String title = PasslyFont.family;
+  static const FontWeight titleWeight = PasslyFont.bold;
   static const String body = PasslyFont.family;
   static const Color ink = Color(0xFF5B4A3A);
   static const Color inkLight = Color(0xFF9A8A78);
@@ -243,6 +244,7 @@ class StuckMemoNote extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontFamily: MemoFont.title,
+                fontWeight: MemoFont.titleWeight,
                 fontSize: 11,
                 height: 1.3,
                 color: MemoFont.ink,
@@ -303,6 +305,7 @@ class MiniMemoNote extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: MemoFont.title,
+              fontWeight: MemoFont.titleWeight,
               fontSize: 8,
               height: 1.2,
               color: MemoFont.ink,
@@ -432,6 +435,7 @@ class _BlankMemoPadState extends State<BlankMemoPad>
                         'メモ',
                         style: TextStyle(
                           fontFamily: MemoFont.title,
+                          fontWeight: MemoFont.titleWeight,
                           fontSize: 8,
                           height: 1.1,
                           color: MemoFont.ink,

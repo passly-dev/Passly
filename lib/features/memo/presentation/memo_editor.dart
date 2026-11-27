@@ -315,6 +315,7 @@ class _MemoEditorState extends State<MemoEditor>
             cursorColor: MemoFont.ink,
             style: const TextStyle(
               fontFamily: MemoFont.title,
+              fontWeight: MemoFont.titleWeight,
               fontSize: 16,
               height: 1.4,
               color: MemoFont.ink,
@@ -323,6 +324,7 @@ class _MemoEditorState extends State<MemoEditor>
               hintText: 'どんな人？',
               hintStyle: const TextStyle(
                 fontFamily: MemoFont.title,
+                fontWeight: MemoFont.titleWeight,
                 fontSize: 16,
                 color: MemoFont.inkLight,
               ),
