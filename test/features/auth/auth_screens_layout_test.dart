@@ -75,6 +75,8 @@ void main() {
         );
         expect(tester.takeException(), isNull);
         expect(find.text('メールとパスワード'), findsOneWidget);
+        // 丸いリングの真ん中に今のステップを出す
+        expect(find.text('1/3'), findsOneWidget);
 
         // 入力しないと次へ進めない
         await tester.tap(find.text('つぎへ'));
@@ -90,6 +92,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.text('すれ違った人に見せる名前'), findsOneWidget);
+        expect(find.text('2/3'), findsOneWidget);
+        expect(find.text('名前とユーザーID'), findsOneWidget);
 
         await tester.enterText(find.byType(TextFormField).at(0), 'パスリー たろう');
         await tester.enterText(find.byType(TextFormField).at(1), 'passly_taro');
@@ -99,6 +103,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.text('connpassとつなぐ'), findsOneWidget);
+        expect(find.text('3/3'), findsOneWidget);
         expect(find.text('ユーザー名はどこにある？'), findsOneWidget);
         expect(find.text('あとで設定する'), findsOneWidget);
 
