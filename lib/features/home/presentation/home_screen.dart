@@ -33,13 +33,37 @@ import 'package:passly/features/user/domain/common_tags.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  /// デモ用。すれ違ったことにして、すれ違い画面を開く。
+  /// デモで，アプリを開いたまますれ違いが続いているところか。
+  static bool _demoArriving = false;
+
+  /// デモ用。アプリを開いたまま，会場で 1 人ずつすれ違っていく様子を出す。
+  ///
+  /// 本番と同じく，イベント中は 5 人たまったところで帯が「新しく5人」に変わる。
   Future<void> _showDemoEncounter(BuildContext context, WidgetRef ref) async {
-    DemoApi.instance.startEncounter();
-    ref.invalidate(encounterNotifierProvider);
-    await ref.read(encounterNotifierProvider.future);
-    if (context.mounted) context.go('/encounter-result');
+    if (_demoArriving) return;
+    final demo = DemoApi.instance;
+    if (demo.remainingArrivals == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('デモのすれ違いはここまでです（アプリを開き直すと最初から）')),
+      );
+      return;
+    }
+    _demoArriving = true;
+    try {
+      for (var i = 0; i < eventEncounterBatchSize; i++) {
+        if (!demo.arriveOne()) break;
+        await ref.read(encounterNotifierProvider.notifier).refresh();
+        if (i < eventEncounterBatchSize - 1) {
+          await Future<void>.delayed(_demoArrivalInterval);
+        }
+      }
+    } finally {
+      _demoArriving = false;
+    }
   }
+
+  /// デモで 1 人ずつすれ違う間隔。
+  static const Duration _demoArrivalInterval = Duration(milliseconds: 1200);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,7 +79,7 @@ class HomeScreen extends ConsumerWidget {
       body: Column(
         children: [
           GestureDetector(
-            // デモモードのときだけ、ヘッダー長押しですれ違い画面を出す
+            // デモモードのときだけ，ヘッダー長押しで会場ですれ違っていく様子を出す
             onLongPress: FeatureFlags.demoMode
                 ? () => _showDemoEncounter(context, ref)
                 : null,
