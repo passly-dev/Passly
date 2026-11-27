@@ -47,7 +47,11 @@ class PasslyApp extends ConsumerWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.backgroundDark,
-        colorSchemeSeed: Colors.blue,
+        // スイッチや読み込み中の表示などの標準部品は，アプリの緑にする
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ).copyWith(primary: PasslyBrand.primary, onPrimary: Colors.white),
         useMaterial3: true,
         highlightColor: Colors.transparent,
         splashColor: PasslyText.secondary.withValues(alpha: 0.28),
